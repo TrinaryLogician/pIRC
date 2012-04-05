@@ -18,21 +18,15 @@
 ############################################################################
 
 package main;
-our $ver = '0.1';
+my $ver = '0.2';
 
 # Our dependencies
 use strict;
 use warnings;
 use IO::Socket::INET;
 use Term::ANSIColor;
-
-# Variables for server connection, change this to reflect your bot info
-my $host = 'irc.serenia.net';
-my $port = '6667';
-my $nickname = 'pIRC';
-my $username = 'pIRC';
-my $realname = 'pIRC v' . $ver;
-my $autojoin = '#pIRC';   # Leave blank for none
+# Load our bot module
+use pIRCbot;
 
 # Make a connection to the IRC Server
 my $socket = new IO::Socket::INET('PeerAddr' => $host, 'PeerPort' => $port, 'Proto' => 'tcp');
@@ -73,10 +67,64 @@ sub COMMAND_PING
     SocketSend('PONG :', $extra);
 }
 
+# Pass invites to pIRCbot.pm
+sub COMMAND_INVITE
+{
+    my ($source, $args, $extra) = @_;
+    my @source = split('!', $source);
+    # Pass it with the variables; $nick, $address, $channel
+    pIRCbot::GotInvite($source[0], $source[1], $extra);
+}
+
+# Pass joins to pIRCbot.pm
+sub COMMAND_JOIN
+{
+    my ($source, $args, $extra) = @_;
+    my @source = split('!', $source);
+    # Pass it with the variables; $nick, $address, $channel
+    pIRCbot::GotJoin($source[0], $source[1], $extra);
+}
+
+# Pass parts to pIRCbot.pm
+sub COMMAND_PART
+{
+    my ($source, $args, $extra) = @_;
+    my @source = split('!', $source);
+    # Pass it with the variables; $nick, $address, $channel, $reason
+    pIRCbot::GotPart($source[0], $source[1], $args, $extra);
+}
+
+# Pass messages to pIRCbot.pm
+sub COMMAND_PRIVMSG
+{
+    my ($source, $args, $extra) = @_;
+    my @source = split('!', $source);
+    # Check if it's a channel message or a private one
+    if ($args =~ m/^#/)
+    {
+        # Pass it with the variables; $nick, $address, $channel, $message
+        pIRCbot::GotChannelMessage($source[0], $source[1], $args, $extra);
+    }
+    else
+    {
+        # Pass it with the variables; $nick, $address, $message
+        pIRCbot::GotPrivateMessage($source[0], $source[1], $extra);
+    }
+}
+
+# Pass quits to pIRCbot.pm
+sub COMMAND_QUIT
+{
+    my ($source, $args, $extra) = @_;
+    my @source = split('!', $source);
+    # Pass it with the variables; $nick, $address, $channel, $reason
+    pIRCbot::GotQuit($source[0], $source[1], $args, $extra);
+}
+
 # We need to send these or the server will just drop us :[
-SocketSend("USER $username 8 * :$realname");
-SocketSend("NICK $nickname");
-SocketSend("JOIN $autojoin") if $autojoin;
+SocketSend("USER " . $username . " 8 * :pIRC v$ver");
+SocketSend("NICK " . $nickname);
+SocketSend("JOIN " . $autojoin) if $autojoin;
 
 # Process incoming data
 while (my $line = <$socket>)
