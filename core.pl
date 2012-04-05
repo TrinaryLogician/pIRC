@@ -32,6 +32,7 @@ my $port = '6667';
 my $nickname = 'pIRC';
 my $username = 'pIRC';
 my $realname = 'pIRC v' . $ver;
+my $autojoin = '#pIRC';   # Leave blank for none
 
 # Make a connection to the IRC Server
 my $socket = new IO::Socket::INET('PeerAddr' => $host, 'PeerPort' => $port, 'Proto' => 'tcp');
@@ -75,6 +76,7 @@ sub COMMAND_PING
 # We need to send these or the server will just drop us :[
 SocketSend("USER $username 8 * :$realname");
 SocketSend("NICK $nickname");
+SocketSend("JOIN $autojoin") if $autojoin;
 
 # Process incoming data
 while (my $line = <$socket>)
