@@ -127,7 +127,7 @@ sub ProcessPacket
 sub COMMAND_PING
 {
     my ($source, $args, $extra) = @_;
-    SocketSend('PONG :', $extra);
+    SocketSend("PONG : $extra");
 }
 
 # Pass invites to pIRCbot.pm
@@ -201,10 +201,20 @@ sub COMMAND_KICK
     if (ref($cref) eq 'CODE') { &{$cref}($source[0], $source[1], $args, $extra); }
 }
 
+# Pass nick changes to pIRCbot.pm
+sub COMMAND_NICK
+{
+    my ($source, $args, $extra) = @_;
+    my @source = split('!', $source);
+    # Pass it with the variables; $nick, $address, $newnick
+    $cref = pIRCbot->can('GotNick');
+    if (ref($cref) eq 'CODE') { &{$cref}($source[0], $source[1], $extra); }
+}
+
 # We need to send these or the server will just drop us :[
-SocketSend("USER " . $username . " 8 * :pIRC v$ver");
-SocketSend("NICK " . $nickname);
-SocketSend("JOIN " . $autojoin) if $autojoin;
+SocketSend("USER $username 8 * :pIRC v$ver");
+SocketSend("NICK $nickname");
+SocketSend("JOIN $autojoin") if $autojoin;
 
 # Process incoming data
 while (my $line = <$socket>)

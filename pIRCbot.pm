@@ -17,8 +17,8 @@
 ## along with pIRC. If not, see <http://www.gnu.org/licenses/>.           ##
 ############################################################################
 
+# Don't change these unless you're adding dependencies to the list
 package pIRCbot;
-
 our @EXPORT = qw($host $port $nickname $username $autojoin);
 use Exporter qw(import);
 use strict;
