@@ -18,7 +18,6 @@
 ############################################################################
 
 package main;
-my $ver = '0.3';
 
 # Our dependencies
 use strict;
@@ -34,6 +33,10 @@ my $daemon = 0;
 my $pidfile = '/var/run/pirc.pid';
 my $logfile = '/var/log/pirc.log';
 
+# Other variables
+my $ver = '0.4';
+my $cref;
+
 # Check for switches (such as ./pirc.pl --daemon)
 foreach(@ARGV)
 {
@@ -45,7 +48,7 @@ foreach(@ARGV)
     {
         print "-D, --daemon\t\tRun pIRC as a Daemon (in the background)\n";
         print "-h, --help\t\tShow this help menu\n";
-        exit(1);
+        exit(0);
     }
     else
     {
@@ -109,7 +112,7 @@ sub SocketSend
 sub ProcessPacket
 {
     my ($packet) = @_;
-    my ($source, $extra, $cref);
+    my ($source, $extra);
     return unless ($packet);
     # Preprocess the IRC packet (split it up into :source, COMMANDTYPE, args[], ... :extra)
     if ($packet =~ m/^\:(.+?) (.+)$/) { $source = $1; $packet = $2; }
@@ -133,7 +136,9 @@ sub COMMAND_INVITE
     my ($source, $args, $extra) = @_;
     my @source = split('!', $source);
     # Pass it with the variables; $nick, $address, $channel
-    pIRCbot::GotInvite($source[0], $source[1], $extra);
+    
+    $cref = pIRCbot->can('GotInvite');
+    if (ref($cref) eq 'CODE') { &{$cref}($source[0], $source[1], $extra); }
 }
 
 # Pass joins to pIRCbot.pm
@@ -142,7 +147,8 @@ sub COMMAND_JOIN
     my ($source, $args, $extra) = @_;
     my @source = split('!', $source);
     # Pass it with the variables; $nick, $address, $channel
-    pIRCbot::GotJoin($source[0], $source[1], $extra);
+    $cref = pIRCbot->can('GotJoin');
+    if (ref($cref) eq 'CODE') { &{$cref}($source[0], $source[1], $extra); }
 }
 
 # Pass parts to pIRCbot.pm
@@ -151,7 +157,8 @@ sub COMMAND_PART
     my ($source, $args, $extra) = @_;
     my @source = split('!', $source);
     # Pass it with the variables; $nick, $address, $channel, $reason
-    pIRCbot::GotPart($source[0], $source[1], $args, $extra);
+    $cref = pIRCbot->can('GotPart');
+    if (ref($cref) eq 'CODE') { &{$cref}($source[0], $source[1], $args, $extra); }
 }
 
 # Pass messages to pIRCbot.pm
@@ -163,12 +170,14 @@ sub COMMAND_PRIVMSG
     if ($args =~ m/^#/)
     {
         # Pass it with the variables; $nick, $address, $channel, $message
-        pIRCbot::GotChannelMessage($source[0], $source[1], $args, $extra);
+        $cref = pIRCbot->can('GotChannelMessage');
+        if (ref($cref) eq 'CODE') { &{$cref}($source[0], $source[1], $args, $extra); }
     }
     else
     {
         # Pass it with the variables; $nick, $address, $message
-        pIRCbot::GotPrivateMessage($source[0], $source[1], $extra);
+        $cref = pIRCbot->can('GotPrivateMessage');
+        if (ref($cref) eq 'CODE') { &{$cref}($source[0], $source[1], $extra); }
     }
 }
 
@@ -178,7 +187,18 @@ sub COMMAND_QUIT
     my ($source, $args, $extra) = @_;
     my @source = split('!', $source);
     # Pass it with the variables; $nick, $address, $channel, $reason
-    pIRCbot::GotQuit($source[0], $source[1], $args, $extra);
+    $cref = pIRCbot->can('GotQuit');
+    if (ref($cref) eq 'CODE') { &{$cref}($source[0], $source[1], $args, $extra); }
+}
+
+# Pass kicks to pIRCbot.pm
+sub COMMAND_KICK
+{
+    my ($source, $args, $extra) = @_;
+    my @source = split('!', $source);
+    # Pass it with the variables; $nick, $address, $channel, $reason
+    $cref = pIRCbot->can('GotKick');
+    if (ref($cref) eq 'CODE') { &{$cref}($source[0], $source[1], $args, $extra); }
 }
 
 # We need to send these or the server will just drop us :[
