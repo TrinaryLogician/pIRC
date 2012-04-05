@@ -18,23 +18,77 @@
 ############################################################################
 
 package main;
-my $ver = '0.2';
+my $ver = '0.3';
 
 # Our dependencies
 use strict;
 use warnings;
 use IO::Socket::INET;
 use Term::ANSIColor;
+use POSIX qw(setsid);
 # Load our bot module
 use pIRCbot;
 
+# Stuff for if we're running as a daemon (often)
+my $daemon = 0;
+my $pidfile = '/var/run/pirc.pid';
+my $logfile = '/var/log/pirc.log';
+
+# Check for switches (such as ./pirc.pl --daemon)
+foreach(@ARGV)
+{
+    if ($_ eq '-D' or $_ eq '--daemon')
+    {
+        $daemon = 1;
+    }
+    else
+    {
+        print "invalid option -- '$_'\n";
+        exit(1);
+    }
+}
+
+# Fork, write the PID to $pidfile, exit
+# In the child redirect stdout/stderr to $logfile
+if ($daemon)
+{
+    my $pid = fork();
+    die('Fork failed') if (! defined($pid));
+    if ($pid > 0)
+    {
+        if (open(PIDFILE, '>', $pidfile))
+        {
+            syswrite(PIDFILE, $pid . "\n");
+            close(PIDFILE);
+        }
+        else
+        {
+            print '[' . color 'RED BOLD'; print '!!!'; print color 'RESET'; print '] ';
+            print "Cannot write to PID file!\n";
+        }
+        exit(0);
+    }
+    open(STDIN, '<', '/dev/null');
+    open(STDOUT, '>', $logfile);
+    open(STDERR, '>', $logfile);
+    setsid();
+}
+
+print '[' . color 'RED BOLD'; print '!!!'; print color 'RESET'; print '] ';
+print "Starting pIRC v$ver\n";
+
 # Make a connection to the IRC Server
+print '[' . color 'YELLOW BOLD'; print '---'; print color 'RESET'; print '] ';
+print "Connecting to $host on $port...\n";
 my $socket = new IO::Socket::INET('PeerAddr' => $host, 'PeerPort' => $port, 'Proto' => 'tcp');
 if (! $socket)
 {
-    print '[' . color 'RED BOLD'; print '!!!'; print color 'RESET'; print '] ';
-    print "Connection failed: $!\n"; exit();
+    print '[' . color 'YELLOW BOLD'; print '---'; print color 'RESET'; print '] ';
+    print "Connection failed: $!\n";
+    exit(1);
 }
+print '[' . color 'YELLOW BOLD'; print '---'; print color 'RESET'; print '] ';
+print "Connected!\n";
 
 # This will handle sending our data
 sub SocketSend
