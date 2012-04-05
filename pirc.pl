@@ -32,7 +32,7 @@ use pIRCbot;
 my $socket = new IO::Socket::INET('PeerAddr' => $host, 'PeerPort' => $port, 'Proto' => 'tcp');
 if (! $socket)
 {
-    print '[' . color 'red bold'; print '!!!'; print color 'reset'; print '] ';
+    print '[' . color 'RED BOLD'; print '!!!'; print color 'RESET'; print '] ';
     print "Connection failed: $!\n"; exit();
 }
 
@@ -40,9 +40,8 @@ if (! $socket)
 sub SocketSend
 {
     syswrite($socket, join('', @_) . "\r\n");
-    print '['; print color 'green bold';
-    print '>>>'; print color 'reset';
-    print '] ' . join('', @_) . "\n";
+    print '['; print color 'GREEN BOLD'; print '>>>'; print color 'RESET'; print '] ';
+    print join('', @_) . "\n";
 }
 
 # We split the packet up for IRC command processing (Thanks to Aaron Jones for the code)
@@ -130,8 +129,7 @@ SocketSend("JOIN " . $autojoin) if $autojoin;
 while (my $line = <$socket>)
 {
     $line =~ s/\s+$//g;
-    print '['; print color 'blue bold';
-    print '<<<'; print color 'reset';
-    print "] $line\n";
+    print '['; print color 'BLUE BOLD'; print '<<<'; print color 'RESET'; print '] ';
+    print "$line\n";
     ProcessPacket($line);
 }
