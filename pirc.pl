@@ -41,9 +41,16 @@ foreach(@ARGV)
     {
         $daemon = 1;
     }
+    elsif ($_ eq '-h' or $_ eq '--help')
+    {
+        print "-D, --daemon\t\tRun pIRC as a Daemon (in the background)\n";
+        print "-h, --help\t\tShow this help menu\n";
+        exit(1);
+    }
     else
     {
         print "invalid option -- '$_'\n";
+        print "Try --help for more information.\n";
         exit(1);
     }
 }
