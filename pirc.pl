@@ -17,7 +17,7 @@
 ## along with pIRC. If not, see <http://www.gnu.org/licenses/>.           ##
 ############################################################################
 
-package core;
+package main;
 our $ver = '0.1';
 
 # Our dependencies
@@ -62,7 +62,7 @@ sub ProcessPacket
     if ($packet =~ m/^(.+?) \:(.+)$/) { $packet = $1; $extra = $2; }
     my ($cmdtype, @args) = split(/\s+/, $packet);
     # Now take action based on its type
-    $cref = core->can(uc('command_' . $cmdtype));
+    $cref = main->can(uc('command_' . $cmdtype));
     if (ref($cref) eq 'CODE') { &{$cref}($source, \@args, $extra); }
 }
 
