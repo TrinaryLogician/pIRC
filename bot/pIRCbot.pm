@@ -18,7 +18,7 @@
 ############################################################################
 
 # Don't change these unless you're adding dependencies to the list
-package pIRCbot;
+package bot::pIRCbot;
 our @EXPORT = qw($host $port $nickname $username $autojoin);
 use Exporter qw(import);
 use strict;
@@ -27,9 +27,9 @@ use warnings;
 # Variables for server connection, change this to reflect your bot info
 our $host = 'irc.serenia.net';
 our $port = '6667';
-our $nickname = 'pIRC';
-our $username = 'pIRC';
-our $autojoin = '#pIRC';   # Leave blank for none
+our $nickname = 'pIRCbot';
+our $username = 'pIRCbot';
+our $autojoin = '';   # Leave blank for none
 
 
 sub GotInvite
