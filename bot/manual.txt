@@ -30,9 +30,9 @@ we have our server variables, this is where we put our information for
 the bot, such as what server we want to connect to, and our nickname.
 In order, $host is for the server we wish to connect to, $port is the
 port we should try to connect on, $nickname is the nickname we want for
-we want, $username is the username for the bot, $maskhost either enables
-or disables usermode x (mask your hostname), 1 is enabled and 0 is
-disabled, and $autojoin which is a channel the bot will join
+we want, $username is the username for the bot, $usermode is our
+usermode string to send once connected. If you don't know what this is
+you should leave it how it is. $autojoin is a channel the bot will join
 automatically as soon as the server is connected, if you don't want to
 join any channel automatically, just leave this blank.
 

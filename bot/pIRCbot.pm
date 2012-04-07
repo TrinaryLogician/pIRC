@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 package bot::pIRCbot;
 use modules::easysend;
-our @EXPORT = qw($host $port $nickname $username $maskhost $autojoin);
+our @EXPORT = qw($host $port $nickname $username $usermode $autojoin);
 use Exporter qw(import);
 use strict;
 use warnings;
@@ -13,8 +13,8 @@ our $host = 'irc.serenia.net';
 our $port = '6667';
 our $nickname = 'Pierce';
 our $username = 'pIRC';
-our $maskhost = 0; # Whether or not to use umode +x, 1 = yes, 0 = no
-our $autojoin = '';   # Auto join a channel on connection, blank for none
+our $usermode = '-x';   # Usermode string, leave default if you don't understand
+our $autojoin = '';     # Auto join a channel on connection, blank for none
 
 # We got an invite
 sub GotInvite

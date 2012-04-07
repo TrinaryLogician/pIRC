@@ -54,7 +54,7 @@ foreach(@ARGV)
     elsif ($_ eq '-h' or $_ eq '--help')
     {
         print "-D, --daemon\t\tRun pIRC as a Daemon (in the background)\n";
-        print "-k, --kill\t\tCleanly disconnect and exit an instance (SIGINT)\n";
+        print "-k, --kill\t\tCleanly disconnect and close an instance (SIGINT)\n";
         print "-h, --help\t\tShow this help menu\n";
         exit(0);
     }
@@ -227,19 +227,10 @@ sub COMMAND_NICK
     if (ref($cref) eq 'CODE') { &{$cref}($source[0], $source[1], $extra); }
 }
 
-# Sort out MODE changes
-sub COMMAND_MODE
-{
-    my ($source, $args, $extra) = @_;
-    if ($extra && $extra =~ m/\+x/ && ! $maskhost)
-    {
-        SocketSend("MODE $nickname -x");
-    }
-}
-
 # We need to send these or the server will just drop us :[
 SocketSend("USER $username 8 * :pIRC v$ver");
 SocketSend("NICK $nickname");
+SocketSend("MODE $nickname $usermode") if $usermode;
 SocketSend("JOIN $autojoin") if $autojoin;
 
 # Process incoming data
