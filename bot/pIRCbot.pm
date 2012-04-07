@@ -1,5 +1,6 @@
 #!/usr/bin/perl
 package bot::pIRCbot;
+use modules::easysend;
 our @EXPORT = qw($host $port $nickname $username $maskhost $autojoin);
 use Exporter qw(import);
 use strict;
@@ -10,17 +11,17 @@ use warnings;
 # Variables for server connection, change this to reflect your bot info
 our $host = 'irc.serenia.net';
 our $port = '6667';
-our $nickname = 'pIRCbot';
-our $username = 'pIRCbot';
+our $nickname = 'Pierce';
+our $username = 'pIRC';
 our $maskhost = 0; # Whether or not to use umode +x, 1 = yes, 0 = no
-our $autojoin = '';   # Leave blank for none
+our $autojoin = '';   # Auto join a channel on connection, blank for none
 
 # We got an invite
 sub GotInvite
 {
     my ($nick, $address, $channel) = @_;
     # Automatically accept any invite to channels
-    &::SocketSend("JOIN $channel");
+    SendJoin($channel);
 }
 
 # We got a message in a channel!
@@ -30,7 +31,7 @@ sub GotChannelMessage
     # Respond to anyone saying 'ping' with 'pong'
     if ($message eq 'ping')
     {
-        &::SocketSend("PRIVMSG $channel pong");
+        SendMessage($channel, "pong");
     }
 }
 
