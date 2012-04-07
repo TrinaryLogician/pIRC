@@ -34,7 +34,7 @@ my $pidfile = '/var/run/pirc.pid';
 my $logfile = '/var/log/pirc.log';
 
 # Other variables
-my $ver = '0.6';
+my $ver = '0.7';
 my $cref;
 
 $SIG{INT}=\&CleanExit;
@@ -214,7 +214,22 @@ sub COMMAND_KICK
     my @source = split('!', $source);
     # Pass it with the variables; $nick, $address, $channel, $kickee, $reason
     $cref = bot::pIRCbot->can('GotKick');
-    if (ref($cref) eq 'CODE') { &{$cref}($source[0], $source[1], $args->[0], $args->[1], $extra); }
+    if (ref($cref) ne 'CODE') {return 0;}
+    
+    # Check if it is one nick or a list of kicked nicks
+    if ($args->[1] =~ m/,/)
+    {
+        my @nicks = split(',', $args->[1]);
+        
+        foreach(@nicks)
+        {
+            &{$cref}($source[0], $source[1], $args->[0], $_, $extra);
+        }
+    }
+    else
+    {
+        &{$cref}($source[0], $source[1], $args->[0], $args->[1], $extra);
+    }
 }
 
 # Pass nick changes to bot/pIRCbot.pm
