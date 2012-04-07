@@ -1,69 +1,186 @@
-This file is for all information regarding how to properly use pIRCbot.pm
-to make your own IRC bot. Use this as a reference, do not guess, and do not
-make changes to pirc.pl unless you are SURE you know what you are doing.
+-----------------------------INTRODUCTION-----------------------------
 
---
 
-To send data to the server you must use the SocketSend subroutine. To
-access this, call &::SocketSend(), here is an example message to #test
-&::SocketSend("PRIVMSG #test Hello everyone!");
+pIRC is a bot framework that I decided to build in the hopes that
+it would make creating IRC bots easier for users who are just
+learning scripting/programming. This, however, does not limit the
+use of pIRC to "newbies" in fact I will be using it myself for my
+other project "Shoutbot" because it will offer more than irssi
+does in terms of access to a list of users and their modes, etc.
 
-For a list of commands to use, see the IRC Client RFC (RFC 2812).
+To create a bot using pIRC all you need to do is edit bot/pIRCbot.pm
+and add your code, below you will find documentation on how things
+are passed to the bot module, and how you can send data in response.
+Once you have written your code, or just some of it and wish to test
+it out, just run ./pirc (or ./pirc -D if you want to run it as a daemon)
+and pIRC will handle everything for you, from connecting to the server
+to processing the incoming data and passing it to your module in an
+easier to use form.
 
---
 
-"Events" are things happening on the server, like joins and messages. These
-are passed to pIRCbot.pm along with a few already split up variables for easy
-use. If you need one, add the sub and the variables, if you don't, either don't
-add it, or remove it from the example pIRCbot.pm. Below is a list of currently
-available events and the variables passed with them. These ARE case sensitive.
+------------------------------SCRIPT HEAD-----------------------------
 
-Here is an example of how an event should be added to your pIRCbot.pm:
 
-sub GotChannelMessage
+Just to make things easier to understand, I'm going to call the first
+17 lines of the script our "script head". This consists of our
+dependencies, which are things that (as implied) we NEED. These should
+not be changed unless you are adding your own dependency (DBI for db
+access for example) or, you are sure you know what you are doing. Next
+we have our server variables, this is where we put our information for
+the bot, such as what server we want to connect to, and our nickname.
+In order, $host is for the server we wish to connect to, $port is the
+port we should try to connect on, $nickname is the nickname we want for
+we want, $username is the username for the bot, $maskhost either enables
+or disables usermode x (mask your hostname), 1 is enabled and 0 is
+disabled, and $autojoin which is a channel the bot will join
+automatically as soon as the server is connected, if you don't want to
+join any channel automatically, just leave this blank.
+
+
+----------------------------RECEIVING DATA----------------------------
+
+
+Receiving data has been made very easy to understand. pIRC will handle
+and process the data, and strip/chop up important data and then pass
+it to the bot module in easy to use variables. It will also pass things
+to the bot module in different subroutines based on what each packet of
+data (and IRC command) is for. Below is a list of currently supported
+subroutines and their available variables, to use any of these, simply
+add them to your bot module, if you don't need one of the ones in the
+example module simply delete it, pIRC will check if you have them or
+not and removing them will not cause errors.
+
+Example sub:
+
+sub GotInvite
 {
-    my ($nick, $address, $channel, $message) = @_;
-    # Code to handle event below here
+    my ($nick, $address, $channel)
+    # here we have the nick of the person
+    # inviting us, the address (username@hostname)
+    # of the person inviting us, and the channel
+    # we are being inviting to.
 }
 
-What are these variables for?
-$nick       - This is the nick of the person sending the command
-$address    - This is the address of the person sending the command
-$channel    - This is the channel that the event is in/for
-$message    - This is the message for PrivateMessage or ChannelMessage
-$reason     - This is the reason left when someone is kicked, parts, quits
-$newnick    - This is used when someone changes their nick
+Supported event subs & their variables:
+    - GotInvite()
+        - $nick     = the nickname of the person inviting you
+        - $address  = the address of the person inviting you
+        - $channel  = the channel you're being invited to
+        
+    - GotJoin()
+        - $nick     = the nickname of the person that joined
+        - $address  = the address of the person that joined
+        - $channel  = the channel the join happened in
+        
+    - GotPart()
+        - $nick     = the nickname of the person that parted the channel
+        - $address  = the address of the person that parted the channel
+        - $channel  = the channel the part happened in
+        - $reason   = the reason the person parted (if one was given)
+    
+    - GotChannelMessage()
+        - $nick     = the nickname of the person that sent the message
+        - $address  = the address of the person that sent the message
+        - $channel  = the channel the message was received in to
+        - $message  = the message received
+        
+    - GotPrivateMessage()
+        - $nick     = the nickname of the person that sent the message
+        - $address  = the address of the person that sent the message
+        - $message  = the message received
+        
+    - GotQuit()
+        - $nick     = the nickname of the person that quit
+        - $address  = the address of the person that quit
+        - $channel  = the channel the quit happened in
+        - $reason   = the reason the person quit (if one was given)
+        
+    - GotKick()
+        - $nick     = the nickname of the person doing the kicking
+        - $address  = the address of the person doing the kicking
+        - $channel  = the channel the kick was in
+        - $kickee   = the nickname of the person who was kicked
+        - $reason   = the reason for the kick (if one was given)
+        
+    - GotNick()
+        - $nick     = the old nickname of the person changing the nicks
+        - $address  = the address of the person doing the nick change
+        - $newnick  = the nickname the person changed to
+        
+NOTE: Sub names have to be the same as listed, however variable names
+      you can pick yourself as long as they are put in the correct order.
+      For example, for an invite you could use $nick, $addr, $chan
 
-GotJoin()           - This will fire happen when anyone joins a channel that
-                      the bot is currently in, including the bot. Available
-                      variables: $nick, $address, $channel
-                      
-GotChannelMessage() - This will fire happen when anyone sends a message in a
-                      channel that the bot is currently in. Available
-                      variables: $nick, $address, $channel, $message
-                      
-GotPrivateMessage() - This will fire happen when anyone sends a message to
-                      the bot in private. Available variables: $nick,
-                      $address, $message
-                      
-GotPart()           - This will fire when anyone leaves a channel that the
-                      bot is currently in. Available variables: $nick,
-                      $address, $channel, $reason
-                      
-GotInvite()         - This will fire when someone invites the bot to a
-                      channel. Available variables: $nick, $address, $channel
-                      
-GotQuit()           - This will fire whenever someone (in a channel the bot
-                      is also in) quits. Available variables: $nick,
-                      $address, $channel, $reason
-                      
-GotKick()           - This will fire when someone gets kicked from a channel
-                      the bot is in (including the bot). Available variables:
-                      $nick, $address, $channel, $reason
-                      
-GotNick()           - This will fire when someone changes their nick in a
-                      channel the bot is in (including the bot). Available
-                      variables: $nick, $address, $newnick
-                      
--- This file will be updated as I add more events or things that regard the
-use of pIRCbot.pm
+
+-----------------------------SENDING DATA-----------------------------
+
+
+Like receiving data, I have tried to make sending data much easier than
+having to understand the IRC protocol. (although a basic knowledge of it
+is still better) To achieve this, I have written a module for pIRC which
+will give the bot module access to some subs that provide a very simple
+way of sending data to the IRC network. This is optional, you can always
+remove "use modules::easysend" from the top of the bot module, however
+I would recommend taking advantage of this module as there is no real
+disadvantage to using it. The only disadvantage I found was not being
+able to send a command if pIRC doesn't currently support it, but I fixed
+that by added a sub to send a raw command to the IRC network.
+
+Example sending of a message:
+SendMessage('#somechan', 'This is a message!');
+
+As you can see, you call the sub for the type of command you wish to send
+and then provide it with the arguments it takes, in this case channel to
+send to, and message to send. Below is a list of subs that easysend
+currently provides and the arguments you need to give to them.
+
+    - SendMessage()
+        - target    = where you want to send the message
+        - message   = the message you want to send
+        - example   = SendMessage('#example', 'hello everyone');
+        
+    - SendAction()
+        - target    = where you want to send the action message
+        - action    = the action you want to send
+        - example   = SendAction('#example', 'pokes john');
+        
+    - SendInvite()
+        - nick      = the nickname of the person you want to invite
+        - channel   = the channel to invite them to
+        - example   = SendInvite('john', '#example');
+        
+    - SendJoin()
+        - channel   = the channel you want to join
+        - example   = SendJoin('#example');
+        
+    - SendPart()
+        - channel   = the channel you want to part from
+        - reason    = the reason you are parting (blank for none)
+        - example   = SendPart('#example', '#example is old now!');
+        
+    - SendKick()
+        - channel   = the channel to kick them from
+        - target    = the person to kick
+        - reason    = the reason for kicking them
+        - example   = SendKick('#newchan', 'barry', 'Go back to #example!');
+        
+    - SendRaw()
+        - command   = the raw command to send straight to the server
+        - example   = SendRaw('PRIVMSG #newchan :newchan is awesome!');
+        
+NOTE: You must call these subs with the names as listed (including case)
+      the arguments must be given in the order they are listed, you don't
+      want to be inviting #example to join john :]
+      
+      
+-------------------------------SUPPORT--------------------------------
+
+
+This document should cover almost everything for using pIRC other than
+things like "how to code in Perl". That said, if you have any questions
+regarding the bot module, or even pIRC itself, or you would like to
+recommend/suggest things to add or change, feel free to email me at
+bradicaljh@hotmail.com with subject 'pIRC'.
+
+
+----------------------------------------------------------------------
