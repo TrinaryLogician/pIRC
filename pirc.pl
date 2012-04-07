@@ -158,7 +158,7 @@ sub COMMAND_PART
     my @source = split('!', $source);
     # Pass it with the variables; $nick, $address, $channel, $reason
     $cref = pIRCbot->can('GotPart');
-    if (ref($cref) eq 'CODE') { &{$cref}($source[0], $source[1], $args, $extra); }
+    if (ref($cref) eq 'CODE') { &{$cref}($source[0], $source[1], $args->[0], $extra); }
 }
 
 # Pass messages to bot/pIRCbot.pm
@@ -167,11 +167,11 @@ sub COMMAND_PRIVMSG
     my ($source, $args, $extra) = @_;
     my @source = split('!', $source);
     # Check if it's a channel message or a private one
-    if ($args =~ m/^#/)
+    if ($args->[0] =~ m/^#/)
     {
         # Pass it with the variables; $nick, $address, $channel, $message
         $cref = bot::pIRCbot->can('GotChannelMessage');
-        if (ref($cref) eq 'CODE') { &{$cref}($source[0], $source[1], $args, $extra); }
+        if (ref($cref) eq 'CODE') { &{$cref}($source[0], $source[1], $args->[0], $extra); }
     }
     else
     {
@@ -188,7 +188,7 @@ sub COMMAND_QUIT
     my @source = split('!', $source);
     # Pass it with the variables; $nick, $address, $channel, $reason
     $cref = bot::pIRCbot->can('GotQuit');
-    if (ref($cref) eq 'CODE') { &{$cref}($source[0], $source[1], $args, $extra); }
+    if (ref($cref) eq 'CODE') { &{$cref}($source[0], $source[1], $args->[0], $extra); }
 }
 
 # Pass kicks to bot/pIRCbot.pm
@@ -198,7 +198,7 @@ sub COMMAND_KICK
     my @source = split('!', $source);
     # Pass it with the variables; $nick, $address, $channel, $reason
     $cref = bot::pIRCbot->can('GotKick');
-    if (ref($cref) eq 'CODE') { &{$cref}($source[0], $source[1], $args, $extra); }
+    if (ref($cref) eq 'CODE') { &{$cref}($source[0], $source[1], $args->[0], $extra); }
 }
 
 # Pass nick changes to bot/pIRCbot.pm
