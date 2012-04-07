@@ -34,7 +34,7 @@ my $pidfile = '/var/run/pirc.pid';
 my $logfile = '/var/log/pirc.log';
 
 # Other variables
-my $ver = '0.5';
+my $ver = '0.6';
 my $cref;
 
 # Check for switches (such as ./pirc.pl --daemon)
@@ -196,9 +196,9 @@ sub COMMAND_KICK
 {
     my ($source, $args, $extra) = @_;
     my @source = split('!', $source);
-    # Pass it with the variables; $nick, $address, $channel, $reason
+    # Pass it with the variables; $nick, $address, $channel, $kickee, $reason
     $cref = bot::pIRCbot->can('GotKick');
-    if (ref($cref) eq 'CODE') { &{$cref}($source[0], $source[1], $args->[0], $extra); }
+    if (ref($cref) eq 'CODE') { &{$cref}($source[0], $source[1], $args->[0], $args->[1], $extra); }
 }
 
 # Pass nick changes to bot/pIRCbot.pm
