@@ -34,7 +34,7 @@ my $pidfile = '/var/run/pirc.pid';
 my $logfile = '/var/log/pirc.log';
 
 # Other variables
-my $ver = '0.4';
+my $ver = '0.5';
 my $cref;
 
 # Check for switches (such as ./pirc.pl --daemon)
@@ -209,6 +209,16 @@ sub COMMAND_NICK
     # Pass it with the variables; $nick, $address, $newnick
     $cref = bot::pIRCbot->can('GotNick');
     if (ref($cref) eq 'CODE') { &{$cref}($source[0], $source[1], $extra); }
+}
+
+# Sort out MODE changes
+sub COMMAND_MODE
+{
+    my ($source, $args, $extra) = @_;
+    if ($extra && $extra =~ m/\+x/ && ! $maskhost)
+    {
+        SocketSend("MODE $nickname -x");
+    }
 }
 
 # We need to send these or the server will just drop us :[

@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 package bot::pIRCbot;
-our @EXPORT = qw($host $port $nickname $username $autojoin);
+our @EXPORT = qw($host $port $nickname $username $maskhost $autojoin);
 use Exporter qw(import);
 use strict;
 use warnings;
@@ -12,6 +12,7 @@ our $host = 'irc.serenia.net';
 our $port = '6667';
 our $nickname = 'pIRCbot';
 our $username = 'pIRCbot';
+our $maskhost = 0; # Whether or not to use umode +x, 1 = yes, 0 = no
 our $autojoin = '';   # Leave blank for none
 
 # We got an invite
