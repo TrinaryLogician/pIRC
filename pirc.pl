@@ -37,6 +37,13 @@ my $logfile = '/var/log/pirc.log';
 my $ver = '0.6';
 my $cref;
 
+$SIG{INT}=\&CleanExit;
+sub CleanExit
+{
+    SocketSend("QUIT :Don't let them kill me! :[");
+    exit(0);
+}
+
 # Check for switches (such as ./pirc.pl --daemon)
 foreach(@ARGV)
 {
@@ -47,7 +54,16 @@ foreach(@ARGV)
     elsif ($_ eq '-h' or $_ eq '--help')
     {
         print "-D, --daemon\t\tRun pIRC as a Daemon (in the background)\n";
+        print "-k, --kill\t\tCleanly disconnect and exit an instance (SIGINT)\n";
         print "-h, --help\t\tShow this help menu\n";
+        exit(0);
+    }
+    elsif ($_ eq '-k' or $_ eq '--kill')
+    {
+        # Send SIGINT to the pid (from the pid file) and exit
+        open(PIDFILE, '<', $pidfile);
+        kill('INT', <PIDFILE>);
+        close(PIDFILE);
         exit(0);
     }
     else
