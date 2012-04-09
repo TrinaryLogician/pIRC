@@ -9,7 +9,7 @@ use warnings;
 # -- Only add your bot code bellow this line unless you need a dependency
 
 # Variables for server connection, change this to reflect your bot info
-our $host = 'irc.serenia.net';
+our $host = 'irc.mordor.io';
 our $port = '6667';
 our $nickname = 'Pierce';
 our $username = 'pIRC';

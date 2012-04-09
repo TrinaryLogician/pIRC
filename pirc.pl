@@ -62,9 +62,19 @@ foreach(@ARGV)
     {
         # Send SIGINT to the pid (from the pid file) and exit
         open(PIDFILE, '<', $pidfile);
-        kill('INT', <PIDFILE>);
+        my $pid = <PIDFILE>;
         close(PIDFILE);
-        exit(0);
+        if ($pid && $pid =~ m/[0-9]/)
+        {
+            kill('INT', $pid);
+            print "Killed pIRC - PID: $pid\n";
+            exit(0);
+        }
+        else
+        {
+            print "No PID found. Exiting.\n";
+            exit(0);
+        }
     }
     else
     {
@@ -143,7 +153,7 @@ sub ProcessPacket
 sub COMMAND_PING
 {
     my ($source, $args, $extra) = @_;
-    SocketSend("PONG : $extra");
+    SocketSend("PONG :$extra");
 }
 
 # Pass invites to bot/pIRCbot.pm
