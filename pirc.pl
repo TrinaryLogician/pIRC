@@ -34,7 +34,7 @@ my $pidfile = '/var/run/pirc.pid';
 my $logfile = '/var/log/pirc.log';
 
 # Other variables
-my $ver = '0.7';
+my $ver = '0.8';
 my $cref;
 
 $SIG{INT}=\&CleanExit;
@@ -156,6 +156,13 @@ sub COMMAND_PING
     SocketSend("PONG :$extra");
 }
 
+# This happens once we're all connected to use it for auto stuff
+sub COMMAND_266
+{
+    SocketSend("MODE $nickname $usermode") if $usermode;
+    SocketSend("JOIN $autojoin") if $autojoin;
+}
+
 # Pass invites to bot/pIRCbot.pm
 sub COMMAND_INVITE
 {
@@ -246,8 +253,6 @@ sub COMMAND_NICK
 # We need to send these or the server will just drop us :[
 SocketSend("USER $username 8 * :pIRC v$ver");
 SocketSend("NICK $nickname");
-SocketSend("MODE $nickname $usermode") if $usermode;
-SocketSend("JOIN $autojoin") if $autojoin;
 
 # Process incoming data
 while (my $line = <$socket>)
