@@ -226,19 +226,10 @@ sub COMMAND_KICK
     $cref = bot::pIRCbot->can('GotKick');
     if (ref($cref) ne 'CODE') {return 0;}
     
-    # Check if it is one nick or a list of kicked nicks
-    if ($args->[1] =~ m/,/)
+    # Split up a nick list by commas (or pass it on if its not a list)
+    foreach(split(/,/, $args->[1]))
     {
-        my @nicks = split(',', $args->[1]);
-        
-        foreach(@nicks)
-        {
-            &{$cref}($source[0], $source[1], $args->[0], $_, $extra);
-        }
-    }
-    else
-    {
-        &{$cref}($source[0], $source[1], $args->[0], $args->[1], $extra);
+        &{$cref}($source[0], $source[1], $args->[0], $_, $extra);
     }
 }
 
