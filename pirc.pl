@@ -22,10 +22,10 @@ package main;
 # Our dependencies
 use strict;
 use warnings;
-use IO::Socket::INET;
-use Term::ANSIColor;
-use POSIX qw(setsid);
+use IO::Socket::IP;
+use IO::Socket::SSL;
 use POSIX;
+use Term::ANSIColor;
 # Load our bot module
 use bot::pIRCbot;
 
@@ -37,8 +37,7 @@ my $logfile = '/var/log/pirc.log';
 # Other variables
 my $ver = '0.8';
 my $cref;
-
-our $socket;
+my $socket;
 
 $SIG{INT}=\&CleanExit;
 sub CleanExit
@@ -259,9 +258,32 @@ for(;;)
         print "Connection failed: $!\n";
         exit(1);
     }
-    print strftime("[%H:%M:%S] ", localtime());
-    print color 'YELLOW BOLD'; print '---'; print color 'RESET'; print ' ';
-    print "Connected!\n";
+    if ($usessl)
+    {
+        IO::Socket::SSL->start_SSL($socket, ( SSL_version => 'TLSv1' ));
+        if ($usessl && ref($socket) ne 'IO::Socket::SSL')
+        {
+            print "SSL negotiation failed, are you sure this is an SSL port?\n";
+            exit(1);
+        }
+        my $ret = $socket->verify_hostname($host, 'www');
+        if (! $ret)
+        {
+            print strftime("[%H:%M:%S] ", localtime());
+            print color 'YELLOW BOLD'; print '---'; print color 'RESET'; print ' ';
+            print "The servers SSL certificate appears to be untrusted!\n";
+            exit(1);
+        }
+        print strftime("[%H:%M:%S] ", localtime());
+        print color 'YELLOW BOLD'; print '---'; print color 'RESET'; print ' ';
+        print "Connected using SSL ports!\n";
+    }
+    else
+    {
+        print strftime("[%H:%M:%S] ", localtime());
+        print color 'YELLOW BOLD'; print '---'; print color 'RESET'; print ' ';
+        print "Connected using plain-text ports!\n";
+    }
 
     # We need to send these or the server will just drop us :[
     SocketSend("USER $username 8 * :pIRC v$ver");

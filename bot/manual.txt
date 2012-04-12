@@ -22,14 +22,15 @@ easier to use form.
 
 
 Just to make things easier to understand, I'm going to call the first
-17 lines of the script our "script head". This consists of our
+20 or so lines of the script our "script head". This consists of our
 dependencies, which are things that (as implied) we NEED. These should
 not be changed unless you are adding your own dependency (DBI for db
 access for example) or, you are sure you know what you are doing. Next
 we have our server variables, this is where we put our information for
 the bot, such as what server we want to connect to, and our nickname.
 In order, $host is for the server we wish to connect to, $port is the
-port we should try to connect on, $reconn is if it should try reconnect
+port we should try to connect on, $usessl is whether or not to try to
+connect to the server using SSL, $reconn is if it should try reconnect
 in the event of a disconnection, $nickname is the nickname we want for
 we want, $nickpass is given to the server with the PASS command when
 connecting, MOST IRC networks will pass this to NickServ to identfy
