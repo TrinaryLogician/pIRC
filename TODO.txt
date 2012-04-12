@@ -9,15 +9,6 @@ TODO List for pIRC code
    on the channel, or no such channel. (You of course need to be in a channel
    to check its modes)
    
-2. Reload support. This will be a way to reload the bot module in the event
-   changes are made, it would allow the user to reload their bot code without
-   stopping and starting the script which would obviously cause a disconnection.
-   Reload support will check for bad syntax or the module not existing before
-   it does the reload, to prevent crashes, if the syntax is bad or module doesn't
-   exist then it will ignore the reload and continue using the currently loaded
-   module. (This is last because it isn't important to me while coding the
-   framework, all changes require a restart anyway)
-   
    
 For after version 1.0:
    

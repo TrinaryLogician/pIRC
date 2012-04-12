@@ -220,6 +220,26 @@ NOTE: You must give a type, if you don't give a type, the logging module
       will ignore your LogMessage. Types are not case sensitive.
       
       
+-------------------------------RELOAD---------------------------------
+
+
+pIRC has reload support. This means you can make changes to your bot
+module file, and reload them without having to kill pIRC meaning you
+would have to disconnect and reconnect. This is very useful for new
+bots as a lot of changes tend to happen, and disconnecting/reconnecting
+all the time can be very annoying, not only for the developer. Reloads
+can be triggered either by doing ./pIRC -r or ./pIRC --reload if pIRC
+is in daemon mode, or by calling ReloadBot() from the bot module.
+
+ReloadBot() will check if the file exists, check if it is readable and
+then check the syntax. Only if these things are all ok will it then
+reload the module, this will prevent changes causing pIRC to crash.
+ReloadBot() will return the status of the reload, it will return file
+if something is wrong with the file (non-existant, unreadable), syntax
+if the syntax is bad, or success if everything is ok and the reload was
+performed.
+
+
 -------------------------------SUPPORT--------------------------------
 
 

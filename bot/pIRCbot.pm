@@ -36,8 +36,7 @@ sub GotChannelMessage
     # Respond to anyone saying 'ping' with 'pong'
     if ($message eq 'ping')
     {
-        #SendMessage($channel, "pong");
-        SendQuit("bye!");
+        SendMessage($channel, "pong");
     }
 }
 

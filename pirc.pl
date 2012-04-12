@@ -25,8 +25,10 @@ use warnings;
 use POSIX;
 use IO::Socket::IP;
 use IO::Socket::SSL;
+use Module::Reload::Selective;
 use modules::logging;
 use bot::pIRCbot;
+$Module::Reload::Selective::Options->{"ReloadOnlyIfEnvVarsSet"} = 0;
 
 # Stuff for if we're running as a daemon (often)
 my $daemon = 0;
@@ -34,7 +36,7 @@ my $pidfile = '/var/run/pirc.pid';
 my $logfile = '/var/log/pirc.log';
 
 # Other variables
-my $ver = '0.8';
+my $ver = '0.9';
 my $cref;
 my $socket;
 
@@ -44,6 +46,7 @@ sub CleanExit
     SocketSend("QUIT :Don't let them kill me! :[");
     exit(0);
 }
+$SIG{HUP}=\&ReloadBot;
 
 # Check for switches (such as ./pirc.pl --daemon)
 foreach(@ARGV)
@@ -56,6 +59,8 @@ foreach(@ARGV)
     {
         print "-D, --daemon\t\tRun pIRC as a Daemon (in the background)\n";
         print "-k, --kill\t\tCleanly disconnect and close an instance (SIGINT)\n";
+        print "-r, --reload\t\tSend the reload signal (SIGHUPT) to pIRC to reload the\n";
+        print "\t\t\tbot module\n";
         print "-h, --help\t\tShow this help menu\n";
         exit(0);
     }
@@ -69,6 +74,24 @@ foreach(@ARGV)
         {
             kill('INT', $pid);
             print "Killed pIRC - PID: $pid\n";
+            exit(0);
+        }
+        else
+        {
+            print "No PID found. Exiting.\n";
+            exit(0);
+        }
+    }
+    elsif ($_ eq '-r' or $_ eq '--reload')
+    {
+        # Send SIGHUP to the pid (from the pid file) and exit
+        open(PIDFILE, '<', $pidfile);
+        my $pid = <PIDFILE>;
+        close(PIDFILE);
+        if ($pid && $pid =~ m/[0-9]/)
+        {
+            kill('HUP', $pid);
+            print "Sent reload signal to pIRC\n";
             exit(0);
         }
         else
@@ -243,7 +266,31 @@ sub COMMAND_NOTICE
     $cref = bot::pIRCbot->can('GotNotice');
     if (ref($cref) eq 'CODE') { &{$cref}($source[0], $source[1], $extra); }
 }
-  
+
+# Reload the bot module
+sub ReloadBot
+{
+    my $botpath = './bot/pIRCbot';
+    if (-e $botpath . ".pm" && -r $botpath . ".pm")
+    {
+        my $syncheck = `perl -c $botpath.pm 2>&1`;
+                
+        if ($syncheck =~ /syntax ok/i)
+        {
+            Module::Reload::Selective->reload($botpath);
+            return 'success';
+        }
+        else
+        {
+            return 'syntax';
+        }
+    }
+    else
+    {
+        return 'file';
+    }
+}
+
 # Infinite loop to keep us connected
 for(;;)
 {

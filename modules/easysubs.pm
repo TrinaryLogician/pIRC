@@ -18,7 +18,7 @@
 ############################################################################
 
 package modules::easysubs;
-our @EXPORT = qw(SendRaw SendMessage SendAction SendInvite SendJoin SendPart SendKick SendQuit);
+our @EXPORT = qw(SendRaw SendMessage SendAction SendInvite SendJoin SendPart SendKick SendQuit ReloadBot);
 use Exporter qw(import);
 use strict;
 use warnings;
@@ -70,6 +70,11 @@ sub SendQuit
     my ($reason) = @_;
     &::SocketSend("QUIT :$reason");
     exit(0);
+}
+
+sub ReloadBot
+{
+    &::ReloadBot;
 }
 
 1;
