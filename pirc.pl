@@ -22,11 +22,10 @@ package main;
 # Our dependencies
 use strict;
 use warnings;
+use POSIX;
 use IO::Socket::IP;
 use IO::Socket::SSL;
-use POSIX;
-use Term::ANSIColor;
-# Load our bot module
+use modules::logging;
 use bot::pIRCbot;
 
 # Stuff for if we're running as a daemon (often)
@@ -101,9 +100,7 @@ if ($daemon)
         }
         else
         {
-            print strftime("[%H:%M:%S] ", localtime());
-            print color 'RED BOLD'; print '!!!'; print color 'RESET'; print ' ';
-            print "Cannot write to PID file!\n";
+            LogMessage('other', "Cannot write to PID file!");
         }
         exit(0);
     }
@@ -113,149 +110,149 @@ if ($daemon)
     setsid();
 }
 
-print strftime("[%H:%M:%S] ", localtime());
-print color 'RED BOLD'; print '!!!'; print color 'RESET'; print ' ';
-print "Starting pIRC v$ver\n";
+LogMessage('other', "Starting pIRC v$ver");
 
-    # This will handle sending our data
-    sub SocketSend
-    {
-        syswrite($socket, join('', @_) . "\r\n");
-        print strftime("[%H:%M:%S] ", localtime());
-        print color 'GREEN BOLD'; print '>>>'; print color 'RESET'; print ' ';
-        print join('', @_) . "\n";
-    }
+# This will handle sending our data
+sub SocketSend
+{
+    syswrite($socket, join('', @_) . "\r\n");
+    LogMessage('send', join('', @_));
+}
 
-    # We split the packet up for IRC command processing (Thanks to Aaron Jones for the code)
-    sub ProcessPacket
-    {
-        my ($packet) = @_;
-        my ($source, $extra);
-        return unless ($packet);
-        # Preprocess the IRC packet (split it up into :source, COMMANDTYPE, args[], ... :extra)
-        if ($packet =~ m/^\:(.+?) (.+)$/) { $source = $1; $packet = $2; }
-        if ($packet =~ m/^(.+?) \:(.+)$/) { $packet = $1; $extra = $2; }
-        my ($cmdtype, @args) = split(/\s+/, $packet);
-        # Now take action based on its type
-        $cref = main->can(uc('command_' . $cmdtype));
-        if (ref($cref) eq 'CODE') { &{$cref}($source, \@args, $extra); }
-    }
+# We split the packet up for IRC command processing (Thanks to Aaron Jones for the code)
+sub ProcessPacket
+{
+    my ($packet) = @_;
+    my ($source, $extra);
+    return unless ($packet);
+    # Preprocess the IRC packet (split it up into :source, COMMANDTYPE, args[], ... :extra)
+    if ($packet =~ m/^\:(.+?) (.+)$/) { $source = $1; $packet = $2; }
+    if ($packet =~ m/^(.+?) \:(.+)$/) { $packet = $1; $extra = $2; }
+    my ($cmdtype, @args) = split(/\s+/, $packet);
+    # Now take action based on its type
+    $cref = main->can(uc('command_' . $cmdtype));
+    if (ref($cref) eq 'CODE') { &{$cref}($source, \@args, $extra); }
+}
 
-    # Must respond to pings
-    sub COMMAND_PING
-    {
-        my ($source, $args, $extra) = @_;
-        SocketSend("PONG :$extra");
-    }
+# Must respond to pings
+sub COMMAND_PING
+{
+    my ($source, $args, $extra) = @_;
+    SocketSend("PONG :$extra");
+}
 
-    # This happens once we're all connected to use it for auto stuff
-    sub COMMAND_266
-    {
-        SocketSend("MODE $nickname $usermode") if $usermode;
-        SocketSend("JOIN $autojoin") if $autojoin;
-    }
+# This happens once we're all connected to use it for auto stuff
+sub COMMAND_266
+{
+    SocketSend("MODE $nickname $usermode") if $usermode;
+    SocketSend("JOIN $autojoin") if $autojoin;
+}
 
-    # Pass invites to bot/pIRCbot.pm
-    sub COMMAND_INVITE
-    {
-        my ($source, $args, $extra) = @_;
-        my @source = split('!', $source);
-        # Pass it with the variables; $nick, $address, $channel
-        $cref = bot::pIRCbot->can('GotInvite');
-        if (ref($cref) eq 'CODE') { &{$cref}($source[0], $source[1], $extra); }
-    }
+# Pass invites to bot/pIRCbot.pm
+sub COMMAND_INVITE
+{
+    my ($source, $args, $extra) = @_;
+    my @source = split('!', $source);
+    # Pass it with the variables; $nick, $address, $channel
+    $cref = bot::pIRCbot->can('GotInvite');
+    if (ref($cref) eq 'CODE') { &{$cref}($source[0], $source[1], $extra); }
+}
 
-    # Pass joins to bot/pIRCbot.pm
-    sub COMMAND_JOIN
-    {
-        my ($source, $args, $extra) = @_;
-        my @source = split('!', $source);
-        # Pass it with the variables; $nick, $address, $channel
-        $cref = bot::pIRCbot->can('GotJoin');
-        if (ref($cref) eq 'CODE') { &{$cref}($source[0], $source[1], $extra); }
-    }
+# Pass joins to bot/pIRCbot.pm
+sub COMMAND_JOIN
+{
+    my ($source, $args, $extra) = @_;
+    my @source = split('!', $source);
+    # Pass it with the variables; $nick, $address, $channel
+    $cref = bot::pIRCbot->can('GotJoin');
+    if (ref($cref) eq 'CODE') { &{$cref}($source[0], $source[1], $extra); }
+}
 
-    # Pass parts to bot/pIRCbot.pm
-    sub COMMAND_PART
+# Pass parts to bot/pIRCbot.pm
+sub COMMAND_PART
+{
+    my ($source, $args, $extra) = @_;
+    my @source = split('!', $source);
+    # Pass it with the variables; $nick, $address, $channel, $reason
+    $cref = pIRCbot->can('GotPart');
+    if (ref($cref) eq 'CODE') { &{$cref}($source[0], $source[1], $args->[0], $extra); }
+}
+
+# Pass messages to bot/pIRCbot.pm
+sub COMMAND_PRIVMSG
+{
+    my ($source, $args, $extra) = @_;
+    my @source = split('!', $source);
+    # Check if it's a channel message or a private one
+    if ($args->[0] =~ m/^#/)
     {
-        my ($source, $args, $extra) = @_;
-        my @source = split('!', $source);
-        # Pass it with the variables; $nick, $address, $channel, $reason
-        $cref = pIRCbot->can('GotPart');
+        # Pass it with the variables; $nick, $address, $channel, $message
+        $cref = bot::pIRCbot->can('GotChannelMessage');
         if (ref($cref) eq 'CODE') { &{$cref}($source[0], $source[1], $args->[0], $extra); }
     }
-
-    # Pass messages to bot/pIRCbot.pm
-    sub COMMAND_PRIVMSG
+    else
     {
-        my ($source, $args, $extra) = @_;
-        my @source = split('!', $source);
-        # Check if it's a channel message or a private one
-        if ($args->[0] =~ m/^#/)
-        {
-            # Pass it with the variables; $nick, $address, $channel, $message
-            $cref = bot::pIRCbot->can('GotChannelMessage');
-            if (ref($cref) eq 'CODE') { &{$cref}($source[0], $source[1], $args->[0], $extra); }
-        }
-        else
-        {
-            # Pass it with the variables; $nick, $address, $message
-            $cref = bot::pIRCbot->can('GotPrivateMessage');
-            if (ref($cref) eq 'CODE') { &{$cref}($source[0], $source[1], $extra); }
-        }
-    }
-
-    # Pass quits to bot/pIRCbot.pm
-    sub COMMAND_QUIT
-    {
-        my ($source, $args, $extra) = @_;
-        my @source = split('!', $source);
-        # Pass it with the variables; $nick, $address, $channel, $reason
-        $cref = bot::pIRCbot->can('GotQuit');
-        if (ref($cref) eq 'CODE') { &{$cref}($source[0], $source[1], $args->[0], $extra); }
-    }
-
-    # Pass kicks to bot/pIRCbot.pm
-    sub COMMAND_KICK
-    {
-        my ($source, $args, $extra) = @_;
-        my @source = split('!', $source);
-        # Pass it with the variables; $nick, $address, $channel, $kickee, $reason
-        $cref = bot::pIRCbot->can('GotKick');
-        if (ref($cref) ne 'CODE') {return 0;}
-    
-        # Split up a nick list by commas (or pass it on if its not a list)
-        foreach(split(/,/, $args->[1]))
-        {
-            &{$cref}($source[0], $source[1], $args->[0], $_, $extra);
-        }
-    }
-
-    # Pass nick changes to bot/pIRCbot.pm
-    sub COMMAND_NICK
-    {
-        my ($source, $args, $extra) = @_;
-        my @source = split('!', $source);
-        # Pass it with the variables; $nick, $address, $newnick
-        $cref = bot::pIRCbot->can('GotNick');
+        # Pass it with the variables; $nick, $address, $message
+        $cref = bot::pIRCbot->can('GotPrivateMessage');
         if (ref($cref) eq 'CODE') { &{$cref}($source[0], $source[1], $extra); }
     }
+}
 
+# Pass quits to bot/pIRCbot.pm
+sub COMMAND_QUIT
+{
+    my ($source, $args, $extra) = @_;
+    my @source = split('!', $source);
+    # Pass it with the variables; $nick, $address, $channel, $reason
+    $cref = bot::pIRCbot->can('GotQuit');
+    if (ref($cref) eq 'CODE') { &{$cref}($source[0], $source[1], $args->[0], $extra); }
+}
 
+# Pass kicks to bot/pIRCbot.pm
+sub COMMAND_KICK
+{
+    my ($source, $args, $extra) = @_;
+    my @source = split('!', $source);
+    # Pass it with the variables; $nick, $address, $channel, $kickee, $reason
+    $cref = bot::pIRCbot->can('GotKick');
+    if (ref($cref) ne 'CODE') {return 0;}
     
-# Infinite loop to keep the script alive
+    # Split up a nick list by commas (or pass it on if its not a list)
+    foreach(split(/,/, $args->[1]))
+    {
+        &{$cref}($source[0], $source[1], $args->[0], $_, $extra);
+    }
+}
+
+# Pass nick changes to bot/pIRCbot.pm
+sub COMMAND_NICK
+{
+    my ($source, $args, $extra) = @_;
+    my @source = split('!', $source);
+    # Pass it with the variables; $nick, $address, $newnick
+    $cref = bot::pIRCbot->can('GotNick');
+    if (ref($cref) eq 'CODE') { &{$cref}($source[0], $source[1], $extra); }
+}
+
+# Pass NOTICEs to bot/pIRCbot.pm
+sub COMMAND_NOTICE
+{
+    my ($source, $args, $extra) = @_;
+    my @source = split('!', $source);
+    # Pass it with the variables; $nick, $address, $message
+    $cref = bot::pIRCbot->can('GotNotice');
+    if (ref($cref) eq 'CODE') { &{$cref}($source[0], $source[1], $extra); }
+}
+  
+# Infinite loop to keep us connected
 for(;;)
 {
     # Make a connection to the IRC Server
-    print strftime("[%H:%M:%S] ", localtime());
-    print color 'YELLOW BOLD'; print '---'; print color 'RESET'; print ' ';
-    print "Connecting to $host on $port...\n";
+    LogMessage('connection', "Connecting to $host on $port...");
     $socket = new IO::Socket::INET('PeerAddr' => $host, 'PeerPort' => $port, 'Proto' => 'tcp');
     if (! $socket)
     {
-        print strftime("[%H:%M:%S] ", localtime());
-        print color 'YELLOW BOLD'; print '---'; print color 'RESET'; print ' ';
-        print "Connection failed: $!\n";
+        LogMessage('connection', "Connection failed: $!");
         exit(1);
     }
     if ($usessl)
@@ -263,26 +260,20 @@ for(;;)
         IO::Socket::SSL->start_SSL($socket, ( SSL_version => 'TLSv1' ));
         if ($usessl && ref($socket) ne 'IO::Socket::SSL')
         {
-            print "SSL negotiation failed, are you sure this is an SSL port?\n";
+            LogMessage('connection', "SSL negotiation failed, are you sure this is an SSL port?");
             exit(1);
         }
         my $ret = $socket->verify_hostname($host, 'www');
         if (! $ret)
         {
-            print strftime("[%H:%M:%S] ", localtime());
-            print color 'YELLOW BOLD'; print '---'; print color 'RESET'; print ' ';
-            print "The servers SSL certificate appears to be untrusted!\n";
+            LogMessage('connection', "The servers SSL certificate appears to be untrusted!");
             exit(1);
         }
-        print strftime("[%H:%M:%S] ", localtime());
-        print color 'YELLOW BOLD'; print '---'; print color 'RESET'; print ' ';
-        print "Connected using SSL ports!\n";
+        LogMessage('connection', "Connected using SSL ports!");
     }
     else
     {
-        print strftime("[%H:%M:%S] ", localtime());
-        print color 'YELLOW BOLD'; print '---'; print color 'RESET'; print ' ';
-        print "Connected using plain-text ports!\n";
+        LogMessage('connection', "Connected using plain-text ports!");
     }
 
     # We need to send these or the server will just drop us :[
@@ -294,23 +285,19 @@ for(;;)
     while (my $line = <$socket>)
     {
         $line =~ s/\s+$//g;
-        print strftime("[%H:%M:%S] ", localtime());
-        print color 'BLUE BOLD'; print '<<<'; print color 'RESET'; print ' ';
-        print "$line\n";
+        LogMessage('receive', "$line");
         ProcessPacket($line);
     }
 
     # If we get to here, we've been disconnected
-    print strftime("[%H:%M:%S] ", localtime());
-    print color 'YELLOW BOLD'; print '---'; print color 'RESET'; print ' ';
     if ($reconn)
     {
-        print "Connection lost, reconnecting in 5 seconds...\n";
+        LogMessage('connection', "Connection lost, reconnecting in 5 seconds...");
         sleep 5;
     }
     else
     {
-        print "Connection lost (reconnecting is disabled).\n";
+        LogMessage('connection', "Connection lost (reconnecting is disabled).");
         exit(0);
     }
 }

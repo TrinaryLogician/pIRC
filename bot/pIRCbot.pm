@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 package bot::pIRCbot;
-use modules::easysend;
+use modules::easysubs;
+use modules::logging;
 our @EXPORT = qw($host $port $usessl $reconn $nickname $nickpass $username $usermode $autojoin);
 use Exporter qw(import);
 use strict;
@@ -14,7 +15,7 @@ our $port = '9000';
 our $usessl = 1;        # Use SSL (0 to disable)
 our $reconn = 1;        # Reconnect if disconnected (0 to disable)
 our $nickname = 'Pierce';
-our $nickpass = '';     # If the nick is register, use this for NickServ Identify, blank for none
+our $nickpass = '';     # If the nick is register, use this for NickServ identify, blank for none
 our $username = 'Pierce';
 our $usermode = '-x';   # Usermode string, leave default if you don't understand
 our $autojoin = '';     # Auto join a channel on connection, blank for none
@@ -23,8 +24,9 @@ our $autojoin = '';     # Auto join a channel on connection, blank for none
 sub GotInvite
 {
     my ($nick, $address, $channel) = @_;
-    # Automatically accept any invite to channels
+    # Automatically accept any invite to channels (and log it)
     SendJoin($channel);
+    LogMessage('bot', "Accepted invite from $nick to $channel");
 }
 
 # We got a message in a channel!

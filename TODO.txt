@@ -20,13 +20,8 @@ TODO List for pIRC code
    
    
 For after version 1.0:
-
-1. TLS (SSL) support. Just because I like security and it would be nice to
-   have. I'm not sure how much work this will be so I'll see what happens.
-   If this gets added it would just have a variable in the bot module like
-   $enabletls = 1
    
-2. Multiserver support. I will merge $host and $port, which will then be
+1. Multiserver support. I will merge $host and $port, which will then be
    used like $server = 'irc.network1.org:9001,irc.network2.org:9002'
    in addition, I will expand all easysend subs to have a first argument
    for which network to send to, and also each sub for incoming data in
@@ -34,7 +29,7 @@ For after version 1.0:
    from. A 'network' will be named as the middle of the domain, irc.blah.org
    would be known as $network = 'blah'.
    
-3. Multithreading support. This would mean that all of the events that call
+2. Multithreading support. This would mean that all of the events that call
    subs in the bot module would be forked to a new thread, this way anything
    your bot module does isn't done in a queue sort of way (do this, then that,
    etc) but each task is done in a new thread, simultanously.

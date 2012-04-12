@@ -17,7 +17,7 @@
 ## along with pIRC. If not, see <http://www.gnu.org/licenses/>.           ##
 ############################################################################
 
-package modules::easysend;
+package modules::easysubs;
 our @EXPORT = qw(SendRaw SendMessage SendAction SendInvite SendJoin SendPart SendKick);
 use Exporter qw(import);
 use strict;
