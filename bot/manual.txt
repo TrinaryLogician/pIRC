@@ -131,7 +131,7 @@ having to understand the IRC protocol. (although a basic knowledge of it
 is still better) To achieve this, I have written a module for pIRC which
 will give the bot module access to some subs that provide a very simple
 way of sending data to the IRC network. This is optional, you can always
-remove "use modules::easysend" from the top of the bot module, however
+remove "use modules::easysubs" from the top of the bot module, however
 I would recommend taking advantage of this module as there is no real
 disadvantage to using it. The only disadvantage I found was not being
 able to send a command if pIRC doesn't currently support it, but I fixed
@@ -142,7 +142,7 @@ SendMessage('#somechan', 'This is a message!');
 
 As you can see, you call the sub for the type of command you wish to send
 and then provide it with the arguments it takes, in this case channel to
-send to, and message to send. Below is a list of subs that easysend
+send to, and message to send. Below is a list of subs that easysubs
 currently provides and the arguments you need to give to them.
 
     - SendMessage()
@@ -182,6 +182,38 @@ currently provides and the arguments you need to give to them.
 NOTE: You must call these subs with the names as listed (including case)
       the arguments must be given in the order they are listed, you don't
       want to be inviting #example to join john :]
+      
+      
+-------------------------------LOGGING--------------------------------
+
+
+There is a module available for logging (either outputs to the console
+or ends up in the log file if running as a daemon) which is mostly for
+the main script to keep track of everything, but can be used by the bot
+module. Below is a list of the log entry types that are supported,
+including one for the bot (but this does not HAVE to be used).
+
+Example log message:
+LogMessage('bot', 'Log entry from the bot!');
+
+    - Connection    = used for connection information, this is prefixed
+                      with *** in cyan
+                      
+    - Send          = used for when data is being SENT, this is prefixed
+                      with >>> in blue
+                      
+    - Receive       = used for when data is being received, this is
+                      prefixed with <<< in red
+                      
+    - Bot           = used for anything that a bot developer wants to be
+                      able to easily see in the log, this is prefixed
+                      with ### in magenta
+                      
+    - Other         = used for anything else, this is prefixed with ---
+                      in yellow
+                      
+NOTE: You must give a type, if you don't give a type, the logging module
+      will ignore your LogMessage. Types are not case sensitive.
       
       
 -------------------------------SUPPORT--------------------------------
