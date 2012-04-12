@@ -1,9 +1,6 @@
 TODO List for pIRC code
-
-1. A way of handling disconnections. Possibly a time to wait, then retry
-   repeat three times, then give up.
    
-2. Handling of channel modes. This will be done in a new module modules::cmodes
+1. Handling of channel modes. This will be done in a new module modules::cmodes
    and will give bot developers access to channel modes and channel modes set
    on nicks. I'll add some code to simplify the use of this, so all someone
    needs to do is run CheckMode('channel', 'nick'); and this will return
@@ -12,7 +9,7 @@ TODO List for pIRC code
    on the channel, or no such channel. (You of course need to be in a channel
    to check its modes)
    
-3. Reload support. This will be a way to reload the bot module in the event
+2. Reload support. This will be a way to reload the bot module in the event
    changes are made, it would allow the user to reload their bot code without
    stopping and starting the script which would obviously cause a disconnection.
    Reload support will check for bad syntax or the module not existing before

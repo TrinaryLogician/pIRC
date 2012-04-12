@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 package bot::pIRCbot;
 use modules::easysend;
-our @EXPORT = qw($host $port $nickname $nickpass $username $usermode $autojoin);
+our @EXPORT = qw($host $port $reconn $nickname $nickpass $username $usermode $autojoin);
 use Exporter qw(import);
 use strict;
 use warnings;
@@ -11,11 +11,12 @@ use warnings;
 # Variables for server connection, change this to reflect your bot info
 our $host = 'irc.mordor.io';
 our $port = '6667';
+our $reconn = 1;        # Reconnect if disconnected (0 to disable)
 our $nickname = 'Pierce';
 our $nickpass = '';     # If the nick is register, use this for NickServ Identify, blank for none
 our $username = 'Pierce';
 our $usermode = '-x';   # Usermode string, leave default if you don't understand
-our $autojoin = '';     # Auto join a channel on connection, blank for none
+our $autojoin = '#bradical';     # Auto join a channel on connection, blank for none
 
 # We got an invite
 sub GotInvite
