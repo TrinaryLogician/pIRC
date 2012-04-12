@@ -253,6 +253,7 @@ sub COMMAND_NICK
 # We need to send these or the server will just drop us :[
 SocketSend("USER $username 8 * :pIRC v$ver");
 SocketSend("NICK $nickname");
+SocketSend("PASS $nickpass") if $nickpass;
 
 # Process incoming data
 while (my $line = <$socket>)

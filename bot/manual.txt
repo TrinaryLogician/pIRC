@@ -30,7 +30,11 @@ we have our server variables, this is where we put our information for
 the bot, such as what server we want to connect to, and our nickname.
 In order, $host is for the server we wish to connect to, $port is the
 port we should try to connect on, $nickname is the nickname we want for
-we want, $username is the username for the bot, $usermode is our
+we want, $nickpass is given to the server with the PASS command when
+connecting, MOST IRC networks will pass this to NickServ to identfy
+your nick, however if it doesn't you will have to use GotNotice to check
+for NickServ asking you to identify. Leave this blank if your nick isn't
+registered. $username is the username for the bot, $usermode is our
 usermode string to send once connected. If you don't know what this is
 you should leave it how it is. $autojoin is a channel the bot will join
 automatically as soon as the server is connected, if you don't want to
@@ -106,6 +110,11 @@ Supported event subs & their variables:
         - $nick     = the old nickname of the person changing the nicks
         - $address  = the address of the person doing the nick change
         - $newnick  = the nickname the person changed to
+        
+    - GotNotice()
+        - $nick     = the nickname of the person sending the notice
+        - $address  = the address of the person sending the notice
+        - $message  = the message the notice contains
         
 NOTE: Sub names have to be the same as listed, however variable names
       you can pick yourself as long as they are put in the correct order.
