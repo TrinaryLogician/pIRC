@@ -18,7 +18,7 @@
 ############################################################################
 
 package modules::easysubs;
-our @EXPORT = qw(SendRaw SendMessage SendAction SendInvite SendJoin SendPart SendKick);
+our @EXPORT = qw(SendRaw SendMessage SendAction SendInvite SendJoin SendPart SendKick SendQuit);
 use Exporter qw(import);
 use strict;
 use warnings;
@@ -63,6 +63,13 @@ sub SendKick
 {
     my ($channel, $target, $reason) = @_;
     &::SocketSend("KICK $channel $target :$reason");
+}
+
+sub SendQuit
+{
+    my ($reason) = @_;
+    &::SocketSend("QUIT :$reason");
+    exit(0);
 }
 
 1;

@@ -13,7 +13,7 @@ use warnings;
 our $host = 'irc.mordor.io';
 our $port = '9000';
 our $usessl = 1;        # Use SSL (0 to disable)
-our $reconn = 1;        # Reconnect if disconnected (0 to disable)
+our $reconn = 1;        # Reconnect after 5 seconds if disconnected (0 to disable)
 our $nickname = 'Pierce';
 our $nickpass = '';     # If the nick is register, use this for NickServ identify, blank for none
 our $username = 'Pierce';
@@ -36,7 +36,8 @@ sub GotChannelMessage
     # Respond to anyone saying 'ping' with 'pong'
     if ($message eq 'ping')
     {
-        SendMessage($channel, "pong");
+        #SendMessage($channel, "pong");
+        SendQuit("bye!");
     }
 }
 
