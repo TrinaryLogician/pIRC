@@ -2,20 +2,8 @@ TODO List for pIRC code
 
 1. A way of handling disconnections. Possibly a time to wait, then retry
    repeat three times, then give up.
-
-2. A new logging system for daemon mode. This will log things in different
-   files, a directory per network, a file per channel, a file for server stuff
-   and a file for bot module stuff.
    
-3. Multiserver support. I will merge $host and $port, which will then be
-   used like $server = 'irc.network1.org:9001,irc.network2.org:9002'
-   in addition, I will expand all easysend subs to have a first argument
-   for which network to send to, and also each sub for incoming data in
-   the bot module will have a $network variable for which network it came
-   from. A 'network' will be named as the middle of the domain, irc.blah.org
-   would be known as $network = 'blah'.
-
-4. Handling of channel modes. This will be done in a new module modules::cmodes
+2. Handling of channel modes. This will be done in a new module modules::cmodes
    and will give bot developers access to channel modes and channel modes set
    on nicks. I'll add some code to simplify the use of this, so all someone
    needs to do is run CheckMode('channel', 'nick'); and this will return
@@ -24,7 +12,7 @@ TODO List for pIRC code
    on the channel, or no such channel. (You of course need to be in a channel
    to check its modes)
    
-5. Reload support. This will be a way to reload the bot module in the event
+3. Reload support. This will be a way to reload the bot module in the event
    changes are made, it would allow the user to reload their bot code without
    stopping and starting the script which would obviously cause a disconnection.
    Reload support will check for bad syntax or the module not existing before
@@ -34,14 +22,22 @@ TODO List for pIRC code
    framework, all changes require a restart anyway)
    
    
-Considering:
+For after version 1.0:
 
 1. TLS (SSL) support. Just because I like security and it would be nice to
    have. I'm not sure how much work this will be so I'll see what happens.
    If this gets added it would just have a variable in the bot module like
    $enabletls = 1
    
-2. Multithreading support. This would mean that all of the events that call
+2. Multiserver support. I will merge $host and $port, which will then be
+   used like $server = 'irc.network1.org:9001,irc.network2.org:9002'
+   in addition, I will expand all easysend subs to have a first argument
+   for which network to send to, and also each sub for incoming data in
+   the bot module will have a $network variable for which network it came
+   from. A 'network' will be named as the middle of the domain, irc.blah.org
+   would be known as $network = 'blah'.
+   
+3. Multithreading support. This would mean that all of the events that call
    subs in the bot module would be forked to a new thread, this way anything
    your bot module does isn't done in a queue sort of way (do this, then that,
    etc) but each task is done in a new thread, simultanously.
