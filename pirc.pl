@@ -37,6 +37,7 @@ my $logfile = '/var/log/pirc.log';
 
 # Other variables
 my $ver = '0.9';
+my $currnick = '';   # Keep track of our CURRENT nick, not what we WANT
 my $cref;
 my $socket;
 
@@ -252,6 +253,12 @@ sub COMMAND_NICK
 {
     my ($source, $args, $extra) = @_;
     my @source = split('!', $source);
+    if ($source[0] eq $nickname)
+    {
+        $currnick = $extra;
+        $nickname = $currnick;
+    }
+    
     # Pass it with the variables; $nick, $address, $newnick
     $cref = bot::pIRCbot->can('GotNick');
     if (ref($cref) eq 'CODE') { &{$cref}($source[0], $source[1], $extra); }
@@ -278,7 +285,9 @@ sub ReloadBot
         if ($syncheck =~ /syntax ok/i)
         {
             Module::Reload::Selective->reload($botpath);
+            $nickname = $currnick if $currnick;
             return 'success';
+            
         }
         else
         {

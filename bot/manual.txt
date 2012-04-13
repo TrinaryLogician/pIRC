@@ -179,6 +179,10 @@ currently provides and the arguments you need to give to them.
         - reason    = the reason for quitting (blank for none)
         - example   = SendQuit('newchan is lame anyway, bye!');
         
+    - SendNick()
+        - nick      = the new nick we want to change to
+        - example   = SendNick('barryisawesome');
+        
     - SendRaw()
         - command   = the raw command to send straight to the server
         - example   = SendRaw('PRIVMSG #newchan :newchan is awesome!');
