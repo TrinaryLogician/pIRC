@@ -192,6 +192,73 @@ NOTE: You must call these subs with the names as listed (including case)
       want to be inviting #example to join john :]
       
       
+------------------------CHANNEL/USER LISTING--------------------------
+      
+      
+One of the parts of pIRC that I really looked forward to completing is
+a way of listing bot the channels pIRC is in, the users in those channels,
+and the channel modes set on the channels, and the users in the respective
+channels. Finally I have gotten around to implementing this, and it works
+well. I have also added a subroutine to easysubs to make it very easy to
+use in your bot, so that there isn't really too much to remember in terms
+of what the array names are and such. Below I will explain how to use the
+lists and give an example of how it could be useful in a bot, but first
+you need to know a few things about IRC and how channel modes work. First,
+you have channel modes for the channel, such as +i (invite only) or +r
+(registered channel with services), these modes will be set for the channel
+in the list, and would be returned as "+ri". Next, we have channel modes
+that are set on users in the channel, such as +o (channel operator) or
++v (voice) and these are set on users in the channels, and are returned
+as symbols, which I'll list later, but for example a channel operator would
+return "@".
+
+Now, the sub for checking these easily is called CheckModes, this will
+return the modes set on a user or channel, but can also be used to check
+if a user or channel exists because if they don't it will return false,
+instead of their mode.
+
+Checking a channels modes (or if it exists)
+    - CheckModes('#somechannel');
+      
+Checking modes set on a user in a channel, or if they are in the channel
+    - CheckModes('#somechan', 'theuser');
+    
+That's it. Yep, with this you can either have a channel or users modes
+returned, or check if you are in a channel, or if a user is in a channel.
+
+Symbols set on modes, and what they mean;
+
+For users:
+    -   This is set (by pIRC) if a user has no modes
+    +   This means a user has +v in the channel, and can speak if +m is set
+    %   This means a user is a halfop
+    @   This means a user is a chanop
+    &   This means a user is a channel admin
+    ~   This means a user owns the channel
+    
+For channels:
+    +   If ONLY this is returned, it means that channel has NO modes set
+    
+Below is a small example of how this could be used in a bot, the code below
+will check if a message starts with "poke", if it does, it will then check
+for an argument (nick as second word) and then check if they are in the
+channel. If they are, it will use ACTION text to poke them, otherwise it
+won't.
+
+sub GotChannelMessage
+{
+    my ($nick, $address, $channel, $message) = @_;
+
+    if ($message =~ m/^!poke/)        # If the message starts with !poke
+    my @args = split(' ', $message);  # This splits it up by spaces
+    if (! $args[1]) { return; }       # It doesn't have a second word (a nick)
+    if (CheckMode($channel, $args[1]))# If they are in the channel
+    {
+        SendAction($channel, "pokes $args[1]"); # Poke them
+    }
+}
+    
+    
 -------------------------------LOGGING--------------------------------
 
 

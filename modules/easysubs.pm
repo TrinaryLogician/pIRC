@@ -18,7 +18,8 @@
 ############################################################################
 
 package modules::easysubs;
-our @EXPORT = qw(SendRaw SendMessage SendAction SendInvite SendJoin SendPart SendKick SendQuit SendNick ReloadBot);
+use modules::cmodes;
+our @EXPORT = qw(SendRaw SendMessage SendAction SendInvite SendJoin SendPart SendKick SendQuit SendNick ReloadBot CheckModes);
 use Exporter qw(import);
 use strict;
 use warnings;
@@ -81,6 +82,13 @@ sub SendNick
 sub ReloadBot
 {
     &::ReloadBot;
+}
+
+sub CheckModes
+{
+    my ($channel, $nick) = @_;
+    if (! $nick){return $channels{lc($channel)}{'modes'};}
+    return $channels{lc($channel)}{'nicks'}{lc($nick)};
 }
 
 1;

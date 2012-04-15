@@ -18,8 +18,6 @@
 ############################################################################
 
 package main;
-
-# Our dependencies
 use strict;
 use warnings;
 use POSIX;
@@ -27,19 +25,20 @@ use IO::Socket::IP;
 use IO::Socket::SSL;
 use Module::Reload::Selective;
 use modules::logging;
+use modules::cmodes;
 use bot::pIRCbot;
+my $socket;
+my $cref;
 $Module::Reload::Selective::Options->{"ReloadOnlyIfEnvVarsSet"} = 0;
 
-# Stuff for if we're running as a daemon (often)
+# Stuff for if we're running as a daemon
 my $daemon = 0;
-my $pidfile = '/var/run/pirc.pid';
-my $logfile = '/var/log/pirc.log';
+my $pidfile = './pirc.pid';
+my $logfile = './pirc.log';
 
 # Other variables
 my $ver = '0.9';
-my $currnick = '';   # Keep track of our CURRENT nick, not what we WANT
-my $cref;
-my $socket;
+my $currnick;   # Keep track of our CURRENT nick (for nick changes etc)
 
 $SIG{INT}=\&CleanExit;
 sub CleanExit
@@ -172,6 +171,21 @@ sub COMMAND_266
     SocketSend("JOIN $autojoin") if $autojoin;
 }
 
+# This captures the channel mode string after we join
+sub COMMAND_324
+{
+    my ($source, $args, $extra) = @_;
+    if ($args->[3]){cMode($args->[1], $args->[2], $args->[3]); return;}
+    cMode($args->[1], $args->[2]);
+}
+
+# This captures the NAMES list for a channel
+sub COMMAND_353
+{
+    my ($source, $args, $extra) = @_;
+    uMode($args->[2], $extra);
+}
+
 # Pass invites to bot/pIRCbot.pm
 sub COMMAND_INVITE
 {
@@ -187,6 +201,19 @@ sub COMMAND_JOIN
 {
     my ($source, $args, $extra) = @_;
     my @source = split('!', $source);
+    
+    # If WE joined
+    if ($source[0] eq $nickname)
+    {
+        NewChan($extra);
+        SocketSend("MODE $extra");
+    }
+    # Otherwise if it's someone else joining
+    else
+    {
+        SocketSend("NAMES $extra");
+    }
+    
     # Pass it with the variables; $nick, $address, $channel
     $cref = bot::pIRCbot->can('GotJoin');
     if (ref($cref) eq 'CODE') { &{$cref}($source[0], $source[1], $extra); }
@@ -197,6 +224,16 @@ sub COMMAND_PART
 {
     my ($source, $args, $extra) = @_;
     my @source = split('!', $source);
+    
+    if ($source[0] eq $nickname)
+    {
+        delete($channels{lc($args->[0])});
+    }
+    else
+    {
+        delete($channels{lc($args->[0])}{'nicks'}{lc($source[0])});
+    }
+    
     # Pass it with the variables; $nick, $address, $channel, $reason
     $cref = pIRCbot->can('GotPart');
     if (ref($cref) eq 'CODE') { &{$cref}($source[0], $source[1], $args->[0], $extra); }
@@ -227,6 +264,20 @@ sub COMMAND_QUIT
 {
     my ($source, $args, $extra) = @_;
     my @source = split('!', $source);
+    
+    # If it's NOT us quitting (if it is it won't matter, the array will be destroyed)
+    if ($source[0] ne $nickname)
+    {
+        # Loop and remove them from each channel they were in
+        foreach my $key ( keys %channels )
+        {
+            if ($channels{$key}{'nicks'}{lc($source[0])})
+            {
+                delete($channels{$key}{'nicks'}{lc($source[0])});
+            }
+        }
+    }
+    
     # Pass it with the variables; $nick, $address, $channel, $reason
     $cref = bot::pIRCbot->can('GotQuit');
     if (ref($cref) eq 'CODE') { &{$cref}($source[0], $source[1], $args->[0], $extra); }
@@ -258,6 +309,18 @@ sub COMMAND_NICK
         $currnick = $extra;
         $nickname = $currnick;
     }
+    else
+    {
+        # Update our modes listing
+        foreach my $key ( keys %channels )
+        {
+            if ($channels{$key}{'nicks'}{lc($source[0])})
+            {
+                delete($channels{$key}{'nicks'}{lc($source[0])});
+                SocketSend("NAMES $key");
+            }
+        }
+    }
     
     # Pass it with the variables; $nick, $address, $newnick
     $cref = bot::pIRCbot->can('GotNick');
@@ -272,6 +335,23 @@ sub COMMAND_NOTICE
     # Pass it with the variables; $nick, $address, $message
     $cref = bot::pIRCbot->can('GotNotice');
     if (ref($cref) eq 'CODE') { &{$cref}($source[0], $source[1], $extra); }
+}
+
+# Refresh our MODEs
+sub COMMAND_MODE
+{
+    my ($source, $args, $extra) = @_;
+    if ($args->[0] =~ m/^#/)
+    {
+        if (! $args->[2])
+        {
+            SocketSend("MODE $args->[0]");
+        }
+        else
+        {
+            SocketSend("NAMES $args->[0]");
+        }
+    }
 }
 
 # Reload the bot module
