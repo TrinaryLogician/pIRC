@@ -1,24 +1,34 @@
-pIRC (Perl IRC) is a bot framework intended for those wishing to build an
-IRC bot who either don't want to spend time building a whole client, or who
-don't have a lot of knowledge and want a more simple way of making their bot.
+Support:
+Bradley J Hammond
+bradicaljh@hotmail.com (bugs, questions, suggestions)
+#bradical on irc.mordor.io (anything really)
+
+If you're reading this file it means you have downloaded pIRC or are
+looking at the source code for some reason on Github. pIRC is an IRC bot
+framework coded in Perl, it is aimed at making the development of bots a
+little easier by providing a script that will connect to the IRC network
+given, maintain the connection, process the data and hand it to the bot
+module in a more simple form. pIRC also has a module which makes SENDING
+data easier, for more information on how to receive and send data, refer
+to the bot manual located at bots/manual.txt
 
 --
 
-When this project is completed anyone will be able to download pIRC and use
-it simply by coding their bot inside the bot module, I intend to make this
-as easy to use as possible, so even people very new to programming/scripting
-can use it with ease. The main script will handle all connection and data
-processing, it will pass relevent things to the bot module with the data
-coming in already sorted and split up. For example, if someone was to send a
-message in a channel, the bot module wouldn't see
-"Somenick!~Someuser@somehost.com PRIVMSG #somechan :hello guys!"
-This would instead be processed by the main script and then passed to the
-bot module as a subroutine GotChannelMessage() with sorted variables
-$nick, $address, $channel and $message
+pIRC requires a number of things to operate, the obvious being Perl,
+but it also requires the modules listed below to be installed:
 
-I also plan to have the main script handle a list of channels the bot is in
-and their users, and modes for each. This will allow the bot module access
-to check a users modes or a channels modes, to for example, only allow a
-channel owner or channel op the ability to administer the bot.
+- IO::Socket::IP
 
--- I will probably do a fresh README soon --
+- IO::Socket::SSL
+
+- Module::Reload::Selective
+
+Once these are installed all you need to do to run pIRC is just that,
+run ./pirc.pl and you're away. To run as a daemon use ./pirc.pl -d and
+use ./pirc.pl -h to see other command line options.
+
+As for making your bot, that's up to you, refer to the bot manual in the
+bot directory and get coding!
+
+--
+This file was last updated on 15/04/2012

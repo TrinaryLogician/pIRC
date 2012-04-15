@@ -1,16 +1,8 @@
 TODO List for pIRC code
    
-1. Handling of channel modes. This will be done in a new module modules::cmodes
-   and will give bot developers access to channel modes and channel modes set
-   on nicks. I'll add some code to simplify the use of this, so all someone
-   needs to do is run CheckMode('channel', 'nick'); and this will return
-   the modes set on that nick in that channel, or "no such nick" or "no such
-   channel". If run with only the channel argument it will return the modes set
-   on the channel, or no such channel. (You of course need to be in a channel
-   to check its modes)
+   --
    
-   
-For after version 1.0:
+For after version 1.0.0 (MAYBE):
    
 1. Multiserver support. I will merge $host and $port, which will then be
    used like $server = 'irc.network1.org:9001,irc.network2.org:9002'
