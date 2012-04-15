@@ -40,6 +40,15 @@ my $logfile = './pirc.log';
 my $ver = '0.9';
 my $currnick;   # Keep track of our CURRENT nick (for nick changes etc)
 
+# SSL/TLS Stuff
+my %ssloptions;
+$ssloptions{'SSL_version'} = 'TLSv1';
+$ssloptions{'SSL_ca_path'} = '/etc/ssl/certs/';
+$ssloptions{'SSL_hostname'} = $host;
+$ssloptions{'SSL_verify_mode'} = 1;
+$ssloptions{'SSL_verifycn_name'} = $host;
+$ssloptions{'SSL_verifycn_scheme'} = 'www';
+
 $SIG{INT}=\&CleanExit;
 sub CleanExit
 {
@@ -384,34 +393,32 @@ sub ReloadBot
 for(;;)
 {
     # Make a connection to the IRC Server
-    LogMessage('connection', "Connecting to $host on $port...");
-    $socket = new IO::Socket::INET('PeerAddr' => $host, 'PeerPort' => $port, 'Proto' => 'tcp');
-    if (! $socket)
+    LogMessage('connection', "Connecting to $host:$port...");
+    $socket = new IO::Socket::IP('PeerAddr' => $host, 'PeerPort' => $port);
+    unless ($socket)
     {
-        LogMessage('connection', "Connection failed: $!");
+        LogMessage('connection', "Could not establish a connection to $host:$port");
         exit(1);
     }
+    LogMessage('connection', "Successfully connected to $host:$port");
+    
+    # Start SSL/TLS if it's enabled
     if ($usessl)
     {
-        IO::Socket::SSL->start_SSL($socket, ( SSL_version => 'TLSv1' ));
-        if ($usessl && ref($socket) ne 'IO::Socket::SSL')
+        LogMessage('Attempting TLSv1 negotiation...');
+        IO::Socket::SSL->start_SSL($socket, %ssloptions );
+        unless (ref($socket) eq 'IO::Socket::SSL')
         {
-            LogMessage('connection', "SSL negotiation failed, are you sure this is an SSL port?");
+            LogMessage('connection', 'TLSv1 negotiation failed! Either this is a plain-text port or this servers SSL certificate is not trusted.');
             exit(1);
         }
-        my $ret = $socket->verify_hostname($host, 'www');
-        if (! $ret)
-        {
-            LogMessage('connection', "The servers SSL certificate appears to be untrusted!");
-            exit(1);
-        }
-        LogMessage('connection', "Connected using SSL ports!");
+        LogMessage('connection', 'Successfully negotiated TLSv1 session, using cipher ' . $socket->get_cipher());
     }
     else
     {
-        LogMessage('connection', "Connected using plain-text ports!");
+        LogMessage('connection', 'WARNING: Connecting via plain-text ports is NOT recommended.');
     }
-
+    
     # We need to send these or the server will just drop us :[
     SocketSend("USER $username 8 * :pIRC v$ver");
     SocketSend("NICK $nickname");
