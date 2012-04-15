@@ -27,36 +27,42 @@ use warnings;
 sub SendRaw
 {
     my ($command) = @_;
+    if (! $command) {return;}
     &::SocketSend($command);
 }
 
 sub SendMessage
 {
     my ($target, $message) = @_;
+    if (! $target or ! $message) {return;}
     &::SocketSend("PRIVMSG $target :$message");
 }
 
 sub SendAction
 {
     my ($target, $action) = @_;
+    if (! $target or ! $action) {return;}
     &::SocketSend("PRIVMSG $target :\001ACTION $action\001");
 }
 
 sub SendInvite
 {
     my ($nick, $channel) = @_;
+    if (! $nick or ! $channel) {return;}
     &::SocketSend("INVITE $nick $channel");
 }
 
 sub SendJoin
 {
     my ($channel) = @_;
+    if (! $channel) {return;}
     &::SocketSend("JOIN $channel");
 }
 
 sub SendPart
 {
     my ($channel, $reason) = @_;
+    if (! $channel or ! $reason) {return;}
     &::SocketSend("PART $channel :$reason");
 }
 
@@ -69,6 +75,7 @@ sub SendKick
 sub SendQuit
 {
     my ($reason) = @_;
+    if (! $reason) {return;}
     &::SocketSend("QUIT :$reason");
     exit(0);
 }
@@ -76,6 +83,7 @@ sub SendQuit
 sub SendNick
 {
     my ($nick) = @_;
+    if (! $nick) {return;}
     &::SocketSend("NICK $nick");
 }
 
@@ -87,6 +95,7 @@ sub ReloadBot
 sub CheckModes
 {
     my ($channel, $nick) = @_;
+    if (! $channel) {return;}
     if (! $nick){return $channels{lc($channel)}{'modes'};}
     return $channels{lc($channel)}{'nicks'}{lc($nick)};
 }
