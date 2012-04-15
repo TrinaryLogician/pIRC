@@ -32,7 +32,7 @@ $Module::Reload::Selective::Options->{"ReloadOnlyIfEnvVarsSet"} = 0;
 my %cmdopts;
 
 # Variables important to pIRC
-my $ver = '0.9';
+my $ver = '1.0.0';
 my $socket;
 my $cref;
 my $pidfile = './pirc.pid';
@@ -396,7 +396,7 @@ for(;;)
         LogMessage('connection', "Could not establish a connection to $host:$port");
         exit(1);
     }
-    LogMessage('connection', "Successfully connected to $host:$port");
+    LogMessage('connection', "Successfully connected to $host (" . $socket->peerhost() . ") on port " . $socket->peerport());
     
     # Start SSL/TLS if it's enabled
     if ($usessl)
