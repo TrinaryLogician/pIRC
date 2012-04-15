@@ -24,10 +24,12 @@ use POSIX;
 use IO::Socket::IP;
 use IO::Socket::SSL;
 use Module::Reload::Selective;
+use Getopt::Std;
 use modules::logging;
 use modules::cmodes;
 use bot::pIRCbot;
 $Module::Reload::Selective::Options->{"ReloadOnlyIfEnvVarsSet"} = 0;
+my %cmdopts;
 
 # Variables important to pIRC
 my $ver = '0.9';
@@ -36,8 +38,6 @@ my $cref;
 my $pidfile = './pirc.pid';
 my $logfile = './pirc.log';
 my $currnick;   # Keep track of our CURRENT nick (for nick changes etc)
-my $daemon = 0;
-my $quiet = 0;
 
 # SSL/TLS Stuff
 my %ssloptions;
@@ -56,74 +56,66 @@ sub CleanExit
 }
 $SIG{HUP}=\&ReloadBot;
 
-# Check for switches (such as ./pirc.pl --daemon)
-foreach(@ARGV)
+# Print our help message for command line options
+sub ShowHelp
 {
-    if ($_ eq '-D' or $_ eq '--daemon')
+    print "\t-d\tRun pIRC as a Daemon (in the background)\n";
+    print "\t-k\tCleanly disconnect and close an instance (SIGINT)\n";
+    print "\t-r\tSend the reload signal (SIGHUP) to pIRC to reload the\n";
+    print "\t\tbot module\n";
+    print "\t-q\tBe quieter with output/logging\n";
+    print "\t-h\tShow this help menu\n";
+    exit(1);
+}
+
+if (! getopts('dkrqh', \%cmdopts)) { &ShowHelp(); }
+
+if ($cmdopts{'k'})
+{
+    # Send SIGINT to the pid (from the pid file) and exit
+    open(PIDFILE, '<', $pidfile);
+    my $pid = <PIDFILE>;
+    close(PIDFILE);
+    if ($pid && $pid =~ m/[0-9]/)
     {
-        $daemon = 1;
-    }
-    elsif ($_ eq '-h' or $_ eq '--help')
-    {
-        print "-D, --daemon\t\tRun pIRC as a Daemon (in the background)\n";
-        print "-k, --kill\t\tCleanly disconnect and close an instance (SIGINT)\n";
-        print "-r, --reload\t\tSend the reload signal (SIGHUPT) to pIRC to reload the\n";
-        print "\t\t\tbot module\n";
-        print "-q, --quiet\t\tBe quieter with output/logging\n";
-        print "-h, --help\t\tShow this help menu\n";
+        kill('INT', $pid);
+        print "Killed pIRC - PID: $pid\n";
         exit(0);
-    }
-    elsif ($_ eq '-k' or $_ eq '--kill')
-    {
-        # Send SIGINT to the pid (from the pid file) and exit
-        open(PIDFILE, '<', $pidfile);
-        my $pid = <PIDFILE>;
-        close(PIDFILE);
-        if ($pid && $pid =~ m/[0-9]/)
-        {
-            kill('INT', $pid);
-            print "Killed pIRC - PID: $pid\n";
-            exit(0);
-        }
-        else
-        {
-            print "No PID found. Exiting.\n";
-            exit(0);
-        }
-    }
-    elsif ($_ eq '-r' or $_ eq '--reload')
-    {
-        # Send SIGHUP to the pid (from the pid file) and exit
-        open(PIDFILE, '<', $pidfile);
-        my $pid = <PIDFILE>;
-        close(PIDFILE);
-        if ($pid && $pid =~ m/[0-9]/)
-        {
-            kill('HUP', $pid);
-            print "Sent reload signal to pIRC\n";
-            exit(0);
-        }
-        else
-        {
-            print "No PID found. Exiting.\n";
-            exit(0);
-        }
-    }
-    elsif ($_ eq '-q' or $_ eq '--quiet')
-    {
-        $quiet = 1;
     }
     else
     {
-        print "invalid option -- '$_'\n";
-        print "Try --help for more information.\n";
+        print "No PID found. Exiting.\n";
         exit(1);
     }
 }
 
+if ($cmdopts{'r'})
+{
+    # Send SIGHUP to the pid (from the pid file) and exit
+    open(PIDFILE, '<', $pidfile);
+    my $pid = <PIDFILE>;
+    close(PIDFILE);
+    if ($pid && $pid =~ m/[0-9]/)
+    {
+        kill('HUP', $pid);
+        print "Sent reload signal to pIRC\n";
+        exit(0);
+    }
+    else
+    {
+        print "No PID found. Exiting.\n";
+        exit(1);
+    }
+}
+
+if ($cmdopts{'h'})
+{
+    ShowHelp();
+}
+
 # Fork, write the PID to $pidfile, exit
 # In the child redirect stdout/stderr to $logfile
-if ($daemon)
+if ($cmdopts{'d'})
 {
     my $pid = fork();
     die('Fork failed') if (! defined($pid));
@@ -152,7 +144,7 @@ LogMessage('other', "Starting pIRC v$ver");
 sub SocketSend
 {
     syswrite($socket, join('', @_) . "\r\n");
-    if (! $quiet) {LogMessage('send', join('', @_));}
+    if (! $cmdopts{'q'}) {LogMessage('send', join('', @_));}
 }
 
 # We split the packet up for IRC command processing (Thanks to Aaron Jones for the code)
@@ -432,7 +424,7 @@ for(;;)
     while (my $line = <$socket>)
     {
         $line =~ s/\s+$//g;
-        if (! $quiet) {LogMessage('receive', "$line");}
+        if (! $cmdopts{'q'}) {LogMessage('receive', "$line");}
         ProcessPacket($line);
     }
 
