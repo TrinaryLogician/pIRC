@@ -32,12 +32,13 @@ $Module::Reload::Selective::Options->{"ReloadOnlyIfEnvVarsSet"} = 0;
 my %cmdopts;
 
 # Variables important to pIRC
-my $ver = '1.0.0';
+my $ver = '1.0.1';
 my $socket;
 my $cref;
 my $pidfile = './pirc.pid';
 my $logfile = './pirc.log';
-my $currnick;   # Keep track of our CURRENT nick (for nick changes etc)
+my $currnick;           # Keep track of our CURRENT nick (for nick changes etc)
+my %currchans = ( );    # Keep track of channels we are currently in
 
 # SSL/TLS Stuff
 my %ssloptions;
@@ -174,6 +175,12 @@ sub COMMAND_266
 {
     SocketSend("MODE $nickname $usermode") if $usermode;
     SocketSend("JOIN $autojoin") if $autojoin;
+    
+    # Join channels we were in (in case we got disconnected)
+    foreach my $key ( keys %currchans )
+    {
+        SocketSend("JOIN $key");
+    }
 }
 
 # This captures the channel mode string after we join
@@ -211,6 +218,7 @@ sub COMMAND_JOIN
     if ($source[0] eq $nickname)
     {
         NewChan($extra);
+        $currchans{$extra} = 1;
         SocketSend("MODE $extra");
     }
     # Otherwise if it's someone else joining
@@ -233,6 +241,7 @@ sub COMMAND_PART
     if ($source[0] eq $nickname)
     {
         delete($channels{lc($args->[0])});
+        delete($currchans{$args->[0]});
     }
     else
     {
@@ -293,6 +302,17 @@ sub COMMAND_KICK
 {
     my ($source, $args, $extra) = @_;
     my @source = split('!', $source);
+    
+    if ($source[0] eq $nickname)
+    {
+        delete($channels{lc($args->[0])});
+        delete($currchans{$args->[0]});
+    }
+    else
+    {
+        delete($channels{lc($args->[0])}{'nicks'}{lc($source[0])});
+    }
+    
     # Pass it with the variables; $nick, $address, $channel, $kickee, $reason
     $cref = bot::pIRCbot->can('GotKick');
     if (ref($cref) ne 'CODE') {return 0;}
@@ -359,6 +379,16 @@ sub COMMAND_MODE
     }
 }
 
+# Make sure we don't annoy Opers by rejoining after a /kill
+sub COMMAND_KILL
+{
+    my ($source, $args, $extra) = @_;
+    my @source = split('!', $source);
+    $extra =~ m/\((.+?)\)$/;
+    LogMessage('connection', $1);
+    exit(2);
+}
+
 # Reload the bot module
 sub ReloadBot
 {
@@ -412,14 +442,14 @@ for(;;)
     }
     else
     {
-        LogMessage('connection', 'WARNING: Connecting via plain-text ports is NOT recommended.');
+        LogMessage('connection', 'WARNING: Using a plain-text connection is NOT recommended.');
     }
     
     # We need to send these or the server will just drop us :[
     SocketSend("USER $username 8 * :pIRC v$ver");
     SocketSend("NICK $nickname");
     SocketSend("PASS $nickpass") if $nickpass;
-
+    
     # Process incoming data
     while (my $line = <$socket>)
     {
@@ -432,6 +462,7 @@ for(;;)
     if ($reconn)
     {
         LogMessage('connection', "Connection lost, reconnecting in 5 seconds...");
+        %channels = ();
         sleep 5;
     }
     else
