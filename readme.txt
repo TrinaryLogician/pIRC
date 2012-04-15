@@ -3,6 +3,8 @@ Bradley J Hammond
 bradicaljh@hotmail.com (bugs, questions, suggestions)
 #bradical on irc.mordor.io (anything really)
 
+pIRC downloads: http://files.bradicaljh.com/pIRC/
+
 If you're reading this file it means you have downloaded pIRC or are
 looking at the source code for some reason on Github. pIRC is an IRC bot
 framework coded in Perl, it is aimed at making the development of bots a
