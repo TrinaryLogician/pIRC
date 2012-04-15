@@ -27,18 +27,17 @@ use Module::Reload::Selective;
 use modules::logging;
 use modules::cmodes;
 use bot::pIRCbot;
-my $socket;
-my $cref;
 $Module::Reload::Selective::Options->{"ReloadOnlyIfEnvVarsSet"} = 0;
 
-# Stuff for if we're running as a daemon
-my $daemon = 0;
+# Variables important to pIRC
+my $ver = '0.9';
+my $socket;
+my $cref;
 my $pidfile = './pirc.pid';
 my $logfile = './pirc.log';
-
-# Other variables
-my $ver = '0.9';
 my $currnick;   # Keep track of our CURRENT nick (for nick changes etc)
+my $daemon = 0;
+my $quiet = 0;
 
 # SSL/TLS Stuff
 my %ssloptions;
@@ -70,6 +69,7 @@ foreach(@ARGV)
         print "-k, --kill\t\tCleanly disconnect and close an instance (SIGINT)\n";
         print "-r, --reload\t\tSend the reload signal (SIGHUPT) to pIRC to reload the\n";
         print "\t\t\tbot module\n";
+        print "-q, --quiet\t\tBe quieter with output/logging\n";
         print "-h, --help\t\tShow this help menu\n";
         exit(0);
     }
@@ -108,6 +108,10 @@ foreach(@ARGV)
             print "No PID found. Exiting.\n";
             exit(0);
         }
+    }
+    elsif ($_ eq '-q' or $_ eq '--quiet')
+    {
+        $quiet = 1;
     }
     else
     {
@@ -148,7 +152,7 @@ LogMessage('other', "Starting pIRC v$ver");
 sub SocketSend
 {
     syswrite($socket, join('', @_) . "\r\n");
-    LogMessage('send', join('', @_));
+    if (! $quiet) {LogMessage('send', join('', @_));}
 }
 
 # We split the packet up for IRC command processing (Thanks to Aaron Jones for the code)
@@ -428,7 +432,7 @@ for(;;)
     while (my $line = <$socket>)
     {
         $line =~ s/\s+$//g;
-        LogMessage('receive', "$line");
+        if (! $quiet) {LogMessage('receive', "$line");}
         ProcessPacket($line);
     }
 
