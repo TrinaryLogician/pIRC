@@ -32,7 +32,7 @@ $Module::Reload::Selective::Options->{"ReloadOnlyIfEnvVarsSet"} = 0;
 my %cmdopts;
 
 # Variables important to pIRC
-my $ver = '1.0.1';
+my $ver = '1.0.2';
 my $socket;
 my $cref;
 my $pidfile = './pirc.pid';
@@ -401,8 +401,13 @@ sub ReloadBot
         {
             Module::Reload::Selective->reload($botpath);
             $nickname = $currnick if $currnick;
+            %channels = ( );
+            foreach my $key ( keys %currchans )
+            {
+                SocketSend("MODE $key");
+                SocketSend("NAMES $key");
+            }
             return 'success';
-            
         }
         else
         {
