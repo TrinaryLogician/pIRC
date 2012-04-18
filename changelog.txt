@@ -1,0 +1,14 @@
+v1.0.1
+
+    - Added automatic rejoining for channels we were in, after being
+      disconnected. Added code to not reconnect after an Oper kills pIRC
+
+v1.0.2
+
+    - Fixed a bug with losing our channels/nicks/modes listing if we reload
+      the bot (it was getting cleared)
+
+v1.0.3
+
+    - Removed pings/pongs from non-quiet logging, too much log spam. Also
+      added a changelog file.

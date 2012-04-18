@@ -32,7 +32,7 @@ $Module::Reload::Selective::Options->{"ReloadOnlyIfEnvVarsSet"} = 0;
 my %cmdopts;
 
 # Variables important to pIRC
-my $ver = '1.0.2';
+my $ver = '1.0.3';
 my $socket;
 my $cref;
 my $pidfile = './pirc.pid';
@@ -167,7 +167,7 @@ sub ProcessPacket
 sub COMMAND_PING
 {
     my ($source, $args, $extra) = @_;
-    SocketSend("PONG :$extra");
+    syswrite($socket, "PONG :$extra\r\n");
 }
 
 # This happens once we're all connected to use it for auto stuff
