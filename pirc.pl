@@ -153,11 +153,14 @@ sub ProcessPacket
 {
     my ($packet) = @_;
     my ($source, $extra);
+    my $line = $packet;
     return unless ($packet);
     # Preprocess the IRC packet (split it up into :source, COMMANDTYPE, args[], ... :extra)
     if ($packet =~ m/^\:(.+?) (.+)$/) { $source = $1; $packet = $2; }
     if ($packet =~ m/^(.+?) \:(.+)$/) { $packet = $1; $extra = $2; }
     my ($cmdtype, @args) = split(/\s+/, $packet);
+    # Print the packet (excluding pings)
+    if (! $cmdopts{'q'} && lc($cmdtype) ne 'ping') {LogMessage('receive', $line);}
     # Now take action based on its type
     $cref = main->can(uc('command_' . $cmdtype));
     if (ref($cref) eq 'CODE') { &{$cref}($source, \@args, $extra); }
@@ -459,7 +462,6 @@ for(;;)
     while (my $line = <$socket>)
     {
         $line =~ s/\s+$//g;
-        if (! $cmdopts{'q'}) {LogMessage('receive', "$line");}
         ProcessPacket($line);
     }
 
