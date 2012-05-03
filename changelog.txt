@@ -12,3 +12,7 @@ v1.0.3
 
     - Removed pings/pongs from non-quiet logging, too much log spam. Also
       added a changelog file.
+      
+v1.0.4
+
+    - ACTUALLY fixed the bug from 1.0.2 (the fix was flawed)
