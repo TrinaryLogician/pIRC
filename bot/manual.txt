@@ -235,6 +235,7 @@ For users:
     @   This means a user is a chanop
     &   This means a user is a channel admin
     ~   This means a user owns the channel
+    *   This means a user is a Network Operator
     
 For channels:
     +   If ONLY this is returned, it means that channel has NO modes set

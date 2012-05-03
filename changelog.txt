@@ -16,3 +16,7 @@ v1.0.3
 v1.0.4
 
     - ACTUALLY fixed the bug from 1.0.2 (the fix was flawed)
+
+v1.0.5
+
+    - Added support to user/mode listing for the oper symbol (*)

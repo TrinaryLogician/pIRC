@@ -37,7 +37,7 @@ sub uMode
     my @nicks = split(' ', $namestring);
     foreach(@nicks)
     {
-        if ($_ =~ m/^\+/ or $_ =~ m/^\%/ or $_ =~ m/^\@/ or $_ =~ m/^\&/ or $_ =~ m/^\~/)
+        if ($_ =~ m/^\+/ or $_ =~ m/^\%/ or $_ =~ m/^\@/ or $_ =~ m/^\&/ or $_ =~ m/^\~/ or $_ =~ m/^\*/)
         {
             $_ =~ m/^(.)(.*)$/;
             $channels{lc($channel)}{'nicks'}{lc($2)} = $1;
