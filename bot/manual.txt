@@ -307,9 +307,10 @@ ReloadBot() will check if the file exists, check if it is readable and
 then check the syntax. Only if these things are all ok will it then
 reload the module, this will prevent changes causing pIRC to crash.
 ReloadBot() will return the status of the reload, it will return file
-if something is wrong with the file (non-existant, unreadable), syntax
-if the syntax is bad, or success if everything is ok and the reload was
-performed.
+if something is wrong with the file (non-existant, unreadable), success
+if everything is ok and it will tell you where the error was if the
+syntax is bad ("syntax error at ./bot/pIRCbot.pm line 9001, near "derp"
+for example).
 
 
 -------------------------------SUPPORT--------------------------------

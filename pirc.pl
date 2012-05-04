@@ -32,7 +32,7 @@ $Module::Reload::Selective::Options->{"ReloadOnlyIfEnvVarsSet"} = 0;
 my %cmdopts;
 
 # Variables important to pIRC
-my $ver = '1.0.5';
+my $ver = '1.0.6';
 my $socket;
 my $cref;
 my $pidfile = './pirc.pid';
@@ -49,13 +49,17 @@ $ssloptions{'SSL_verify_mode'} = 1;
 $ssloptions{'SSL_verifycn_name'} = $host;
 $ssloptions{'SSL_verifycn_scheme'} = 'www';
 
-$SIG{INT}=\&CleanExit;
-sub CleanExit
+$SIG{INT}=\&GotSIGINT;
+sub GotSIGINT
 {
     SocketSend("QUIT :Don't let them kill me! :[");
     exit(0);
 }
-$SIG{HUP}=\&ReloadBot;
+$SIG{HUP}=\&GotSIGHUP;
+sub GotSIGHUP
+{
+    ReloadBot();
+}
 
 # Print our help message for command line options
 sub ShowHelp
@@ -415,7 +419,8 @@ sub ReloadBot
         }
         else
         {
-            return 'syntax';
+            $syncheck =~ m/at ([^ ]+) line (\d+)/;
+            return $syncheck;
         }
     }
     else

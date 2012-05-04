@@ -6,18 +6,17 @@ our @EXPORT = qw($host $port $usessl $reconn $nickname $nickpass $username $user
 use Exporter qw(import);
 use strict;
 use warnings;
-
 # -- Only add your bot code bellow this line unless you need a dependency
 
 # Variables for server connection, change this to reflect your bot info
-our $host = 'irc.mordor.io';
+our $host = 'ircs.lantea.org';
 our $port = '9000';
 our $usessl = 1;        # Use SSL (0 to disable)
 our $reconn = 1;        # Reconnect after 5 seconds if disconnected (0 to disable)
 our $nickname = 'Pierce';
 our $nickpass = '';     # If the nick is register, use this for NickServ identify, blank for none
 our $username = 'Pierce';
-our $usermode = '-x';   # Usermode string, leave default if you don't understand
+our $usermode = '';   # Usermode string, leave default if you don't understand
 our $autojoin = '';     # Auto join a channel on connection, blank for none
 
 # We got an invite

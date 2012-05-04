@@ -20,3 +20,8 @@ v1.0.4
 v1.0.5
 
     - Added support to user/mode listing for the oper symbol (*)
+    
+v1.0.6 [04-05-2012]
+
+    - Fixed a bug in the ./pirc.pl -r reload method causing crashes
+    - Added support for telling you where the syntax error is, when reloading
