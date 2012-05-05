@@ -256,7 +256,7 @@ sub COMMAND_PART
     }
     
     # Pass it with the variables; $nick, $address, $channel, $reason
-    $cref = pIRCbot->can('GotPart');
+    $cref = bot::pIRCbot->can('GotPart');
     if (ref($cref) eq 'CODE') { &{$cref}($source[0], $source[1], $args->[0], $extra); }
 }
 
