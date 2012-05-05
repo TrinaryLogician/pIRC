@@ -62,7 +62,7 @@ sub SendJoin
 sub SendPart
 {
     my ($channel, $reason) = @_;
-    if (! $channel or ! $reason) {return;}
+    if (! $channel) {return;}
     &::SocketSend("PART $channel :$reason");
 }
 
@@ -75,7 +75,6 @@ sub SendKick
 sub SendQuit
 {
     my ($reason) = @_;
-    if (! $reason) {return;}
     &::SocketSend("QUIT :$reason");
     exit(0);
 }

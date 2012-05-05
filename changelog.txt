@@ -30,4 +30,5 @@ v1.0.7 [05-05-2012]
 
     - Added NickCount() for counting the nicks in a given channel
     - Fixed a bug with GotPart() passing
+    - Fixed a bug in easysubs that prevented you from using SendPart without a reason
     
