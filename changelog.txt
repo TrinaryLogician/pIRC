@@ -25,3 +25,8 @@ v1.0.6 [04-05-2012]
 
     - Fixed a bug in the ./pirc.pl -r reload method causing crashes
     - Added support for telling you where the syntax error is, when reloading
+    
+v1.0.7 [05-05-2012]
+
+    - Added NickCount() for counting the nicks in a given channel
+    

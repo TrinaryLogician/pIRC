@@ -32,7 +32,7 @@ $Module::Reload::Selective::Options->{"ReloadOnlyIfEnvVarsSet"} = 0;
 my %cmdopts;
 
 # Variables important to pIRC
-my $ver = '1.0.6';
+my $ver = '1.0.7';
 my $socket;
 my $cref;
 my $pidfile = './pirc.pid';

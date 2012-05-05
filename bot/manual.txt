@@ -258,6 +258,9 @@ sub GotChannelMessage
         SendAction($channel, "pokes $args[1]"); # Poke them
     }
 }
+
+Additionally, there is a NickCount() sub that will return the number
+of people in a given channel. Used like NickCount("#halo");
     
     
 -------------------------------LOGGING--------------------------------

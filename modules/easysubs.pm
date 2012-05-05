@@ -19,7 +19,7 @@
 
 package modules::easysubs;
 use modules::cmodes;
-our @EXPORT = qw(SendRaw SendMessage SendAction SendInvite SendJoin SendPart SendKick SendQuit SendNick ReloadBot CheckModes);
+our @EXPORT = qw(SendRaw SendMessage SendAction SendInvite SendJoin SendPart SendKick SendQuit SendNick ReloadBot CheckModes NickCount);
 use Exporter qw(import);
 use strict;
 use warnings;
@@ -98,6 +98,19 @@ sub CheckModes
     if (! $channel) {return;}
     if (! $nick){return $channels{lc($channel)}{'modes'};}
     return $channels{lc($channel)}{'nicks'}{lc($nick)};
+}
+
+sub NickCount
+{
+    my ($channel) = @_;
+    if (! $channel) {return;}
+    my $nickcount = 0;
+    
+    while (my ($key, $value) = each %{ $channels{lc($channel)}{'nicks'} } )
+    {
+        $nickcount++;
+    }
+    return $nickcount;
 }
 
 1;
