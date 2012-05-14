@@ -1,3 +1,11 @@
+This is my (TrinaryLogician's) fork of Bradical's pIRC framework. This is
+basically for some tinkering and parallel development at the moment
+
+I can be found at:
+#lantea on irc.lantea.org (Bradical's network)
+
+--
+
 Support:
 Bradley J Hammond
 bradicaljh@hotmail.com (bugs, questions, suggestions)
