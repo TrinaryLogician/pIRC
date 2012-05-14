@@ -41,4 +41,4 @@ As for making your bot, that's up to you, refer to the bot manual in the
 bot directory and get coding!
 
 --
-This file was last updated on 15/04/2012
+This file was last updated on 14/05/2012
